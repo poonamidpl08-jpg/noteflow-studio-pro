@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity() {
         webView = WebView(this)
         setContentView(webView)
         enableImmersiveFullscreen()
+        requestHighRefreshRate()
 
         webView.settings.apply {
             javaScriptEnabled = true
@@ -106,6 +107,18 @@ class MainActivity : AppCompatActivity() {
                     or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                     or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
             )
+        }
+    }
+
+    private fun requestHighRefreshRate() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                val modes = display?.supportedModes ?: return
+                val best = modes.maxByOrNull { it.refreshRate } ?: return
+                val lp = window.attributes
+                lp.preferredDisplayModeId = best.modeId
+                window.attributes = lp
+            } catch (_: Exception) {}
         }
     }
 

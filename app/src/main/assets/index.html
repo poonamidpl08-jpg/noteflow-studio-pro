@@ -55,6 +55,8 @@
       height: 100%;
       display: block;
       touch-action: none;
+      transform-origin: 0 0;
+      will-change: transform;
     }
     #bgCanvas { z-index: 1; }
     #inkCanvas { z-index: 2; }
@@ -64,7 +66,7 @@
     .dock-pill {
       background: rgba(15, 23, 42, 0.94);
       border: 1px solid rgba(51, 65, 85, 0.9);
-      backdrop-filter: blur(12px);
+      /* removed backdrop-filter for 120fps Android GPU */
       box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
       transform: scale(var(--dock-scale));
       transform-origin: bottom center;
@@ -148,8 +150,60 @@
     <span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">75&quot; IFP</span>
   </button>
 
+  <!-- TOP-CENTER 3-MODE SWITCHER (BOARD / ANDROID PDF EDIT / PRESENTATION) -->
+  <div id="topModePill" class="fixed top-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1 p-1 rounded-2xl bg-slate-900/92  border border-slate-700/85 shadow-2xl">
+    <button id="btnModeBoard" data-app-mode="board" class="app-mode-btn px-3 py-1.5 rounded-xl text-[11px] font-semibold bg-blue-600 text-white flex items-center gap-1.5 transition" title="Infinite Teaching Board Mode">
+      <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i><span>Board</span>
+    </button>
+    <button id="btnModeAndroidPdf" data-app-mode="android-pdf" class="app-mode-btn px-3 py-1.5 rounded-xl text-[11px] font-semibold text-slate-300 hover:bg-slate-800 flex items-center gap-1.5 transition" title="Android Editable PDF Mode">
+      <i data-lucide="file-pen-line" class="w-3.5 h-3.5 text-emerald-400"></i><span>Android PDF</span>
+    </button>
+    <button id="btnModePresentation" data-app-mode="presentation" class="app-mode-btn px-3 py-1.5 rounded-xl text-[11px] font-semibold text-slate-300 hover:bg-slate-800 flex items-center gap-1.5 transition" title="Fullscreen Presentation Ready-to-Write Mode">
+      <i data-lucide="presentation" class="w-3.5 h-3.5 text-amber-400"></i><span>Presentation</span>
+    </button>
+  </div>
+
+  <!-- ANDROID PDF EDIT MODE FLOATING BAR -->
+  <div id="pdfEditToolbar" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-slate-900/95  border border-emerald-500/45 shadow-2xl text-[11px]">
+    <span class="px-1.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">PDF EDIT</span>
+    <button id="btnPdfWhiteout" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-medium flex items-center gap-1" title="Cover / Whiteout Existing PDF Text"><i data-lucide="square-dashed" class="w-3.5 h-3.5 text-emerald-400"></i> Whiteout</button>
+    <button id="btnPdfAddText" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-medium flex items-center gap-1" title="Type Editable Text Over PDF"><i data-lucide="type" class="w-3.5 h-3.5 text-sky-400"></i> Add Text</button>
+    <button id="btnPdfRotate" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-medium flex items-center gap-1" title="Rotate PDF Page 90°"><i data-lucide="rotate-cw" class="w-3.5 h-3.5 text-amber-400"></i> Rotate</button>
+    <button id="btnPdfFitWidth" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-medium flex items-center gap-1" title="Fit PDF Full Width"><i data-lucide="maximize" class="w-3.5 h-3.5 text-blue-400"></i> Full Width</button>
+    <button id="btnPdfDupPage" class="px-2 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium flex items-center gap-1" title="Duplicate Current Page"><i data-lucide="copy-plus" class="w-3.5 h-3.5 text-indigo-400"></i></button>
+    <button id="btnPdfDelPage" class="px-2 py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/35 border border-rose-500/40 text-rose-300 font-medium flex items-center gap-1" title="Delete Current Page"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+  </div>
+
+  <!-- PRESENTATION MODE FULLSCREEN READY-TO-WRITE MINI PILL -->
+  <div id="presentationBar" class="hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1 px-2 py-1.5 rounded-2xl bg-slate-950/88  border border-slate-700/80 shadow-2xl">
+    <button id="presPen" class="px-2.5 h-10 rounded-xl bg-blue-600 text-white text-xs font-semibold flex items-center gap-1.5" title="Beauty Pen"><i data-lucide="pen-line" class="w-4 h-4"></i><span class="hidden sm:inline">Pen</span></button>
+    <button id="presHighlighter" class="w-10 h-10 rounded-xl text-amber-300 hover:bg-slate-800 flex items-center justify-center" title="Highlighter"><i data-lucide="highlighter" class="w-4 h-4"></i></button>
+    <button id="presEraser" class="w-10 h-10 rounded-xl text-pink-300 hover:bg-slate-800 flex items-center justify-center" title="Instant Eraser"><i data-lucide="eraser" class="w-4 h-4"></i></button>
+    <button id="presLaser" class="px-2 h-10 rounded-xl text-rose-400 hover:bg-slate-800 flex items-center justify-center gap-1 text-[11px] font-bold" title="Timed Laser Pointer"><i data-lucide="wand-sparkles" class="w-4 h-4"></i><span id="presLaserSec">3s</span></button>
+    <div class="h-6 border-l border-slate-700 mx-0.5"></div>
+    <button data-pres-color="#ef4444" class="pres-color-btn w-6 h-6 rounded-full bg-red-500 border-2 border-white/70"></button>
+    <button data-pres-color="#2563eb" class="pres-color-btn w-6 h-6 rounded-full bg-blue-600 border border-slate-500"></button>
+    <button data-pres-color="#facc15" class="pres-color-btn w-6 h-6 rounded-full bg-yellow-400 border border-slate-500"></button>
+    <button data-pres-color="#111827" class="pres-color-btn w-6 h-6 rounded-full bg-slate-950 border border-slate-400"></button>
+    <button data-pres-color="#ffffff" class="pres-color-btn w-6 h-6 rounded-full bg-white border border-slate-400"></button>
+    <div class="h-6 border-l border-slate-700 mx-0.5"></div>
+    <button id="presUndo" class="w-9 h-10 rounded-xl text-slate-200 hover:bg-slate-800 disabled:opacity-35 flex items-center justify-center" title="Undo"><i data-lucide="undo-2" class="w-4 h-4"></i></button>
+    <button id="presRedo" class="w-9 h-10 rounded-xl text-slate-200 hover:bg-slate-800 disabled:opacity-35 flex items-center justify-center" title="Redo"><i data-lucide="redo-2" class="w-4 h-4"></i></button>
+    <div class="h-6 border-l border-slate-700 mx-0.5"></div>
+    <button id="presPrev" class="w-9 h-10 rounded-xl text-slate-200 hover:bg-slate-800 disabled:opacity-35 flex items-center justify-center" title="Previous Slide"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+    <span id="presPageNum" class="px-1.5 text-xs font-bold text-slate-100 tabular-nums whitespace-nowrap">1 / 1</span>
+    <button id="presNext" class="w-9 h-10 rounded-xl text-slate-200 hover:bg-slate-800 disabled:opacity-35 flex items-center justify-center" title="Next Slide"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+    <div class="h-6 border-l border-slate-700 mx-0.5"></div>
+    <button id="presClear" class="w-9 h-10 rounded-xl text-rose-400 hover:bg-rose-500/15 flex items-center justify-center" title="Clear Slide Ink"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+    <button id="presExit" class="px-2.5 h-10 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-1 ml-0.5" title="Exit Presentation"><i data-lucide="minimize-2" class="w-3.5 h-3.5"></i><span>Exit</span></button>
+  </div>
+
   <!-- TOP-RIGHT COMPACT ORIENTATION & CAMERA RESET PILL -->
-  <div class="fixed top-3 right-3 z-30 flex items-center gap-1.5">
+  <div id="topRightPill" class="fixed top-3 right-3 z-30 flex items-center gap-1.5">
+    <button id="btnFitToggle" class="px-2.5 py-1.5 rounded-xl bg-slate-900/85 hover:bg-slate-800 border border-slate-700/80 text-[11px] font-medium text-emerald-300 flex items-center gap-1 shadow-lg transition" title="Toggle Fit Page / Fit Width">
+      <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+      <span id="fitModeLabel">Fit Full</span>
+    </button>
     <button id="btnQuickOrientation" class="px-2.5 py-1.5 rounded-xl bg-slate-900/85 hover:bg-slate-800 border border-slate-700/80 text-[11px] font-medium text-slate-200 flex items-center gap-1.5 shadow-lg transition" title="Toggle PDF / Export Orientation">
       <i data-lucide="rectangle-horizontal" class="w-3.5 h-3.5 text-sky-400"></i>
       <span id="orientLabel">Landscape</span>
@@ -160,7 +214,7 @@
   </div>
 
   <!-- SLIDE-OUT LEFT SIDEBAR DRAWER -->
-  <aside id="sideDrawer" class="hidden fixed inset-y-0 left-0 w-80 max-w-[90vw] bg-slate-900/98 backdrop-blur-xl border-r border-slate-700/90 shadow-2xl z-50 flex-col">
+  <aside id="sideDrawer" class="hidden fixed inset-y-0 left-0 w-80 max-w-[90vw] bg-slate-900/98  border-r border-slate-700/90 shadow-2xl z-50 flex-col">
     <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"><i data-lucide="pen-tool" class="w-4 h-4 text-white"></i></div>
@@ -279,9 +333,9 @@
       <div class="flex items-center justify-between mb-2">
         <span id="sidebarPageCount" class="text-xs font-semibold text-slate-300">1 page</span>
         <select id="pdfQualitySelect" class="bg-slate-800 border border-slate-700 text-[10px] text-slate-300 rounded px-1.5 py-1">
-          <option value="1.5">PDF: Fast (1.5x)</option>
-          <option value="2" selected>PDF: Crisp (2x)</option>
-          <option value="2.5">PDF: 4K IFP (2.5x)</option>
+          <option value="2">PDF: Fast (2x)</option>
+          <option value="3" selected>PDF: 4K Crisp (3x)</option>
+          <option value="3.5">PDF: Ultra HD (3.5x)</option>
         </select>
       </div>
       <div id="pageThumbList" class="flex-1 overflow-y-auto space-y-2 mb-3"></div>
@@ -425,8 +479,11 @@
   </div>
 
   <!-- BOTTOM CENTER MAIN TOOL DOCK -->
-  <nav id="bottomToolDock" class="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 px-2 py-1.5 rounded-2xl dock-pill max-w-[calc(100vw-250px)] overflow-x-auto">
-    <button id="dockPen" data-tool="pen" class="tool-btn active shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center text-slate-300 hover:bg-slate-800" title="13 Pens + Color/Size/Opacity"><i data-lucide="pen-line" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none">Pens</span></button>
+  <nav id="bottomToolDock" class="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 px-2 py-1.5 rounded-2xl dock-pill max-w-[calc(100vw-240px)] overflow-x-auto">
+    <button id="btnDockUndo" class="shrink-0 w-10 h-11 rounded-xl flex flex-col items-center justify-center text-slate-200 hover:bg-slate-800 disabled:opacity-30" title="Undo (Ctrl+Z)"><i data-lucide="undo-2" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none">Undo</span></button>
+    <button id="btnDockRedo" class="shrink-0 w-10 h-11 rounded-xl flex flex-col items-center justify-center text-slate-200 hover:bg-slate-800 disabled:opacity-30" title="Redo (Ctrl+Y)"><i data-lucide="redo-2" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none">Redo</span></button>
+    <div class="h-7 border-l border-slate-700 mx-0.5 shrink-0"></div>
+    <button id="dockPen" data-tool="pen" class="tool-btn active shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center text-slate-300 hover:bg-slate-800" title="6 Pro Pens + Beauty Smooth + Color/Size"><i data-lucide="pen-line" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none">Pens</span></button>
     <button id="dockEraser" data-tool="eraser" class="tool-btn shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center text-slate-300 hover:bg-slate-800" title="Eraser Suite"><i data-lucide="eraser" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none">Erase</span></button>
     <button id="dockHighlighter" data-quick-pen="highlighter" class="tool-btn shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center text-slate-300 hover:bg-slate-800" title="Highlighter"><i data-lucide="highlighter" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none">Highlt</span></button>
     <button id="dockShape" data-tool="shape" class="tool-btn shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center text-slate-300 hover:bg-slate-800" title="2D &amp; 3D Shapes"><i data-lucide="shapes" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none">Shape</span></button>
@@ -435,7 +492,7 @@
     <label for="overlayImgInput" class="cursor-pointer shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center text-emerald-300 hover:bg-slate-800" title="Import Image onto Board"><i data-lucide="image-plus" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none">Img</span></label>
     <button id="dockSelect" data-tool="select" class="tool-btn shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center text-slate-300 hover:bg-slate-800" title="Select, Move &amp; Resize"><i data-lucide="lasso-select" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none">Move</span></button>
     <button id="dockBlinkPointer" data-tool="blink-pointer" class="tool-btn shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center text-amber-300 hover:bg-slate-800" title="10s Blinking Pointer"><i data-lucide="crosshair" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none">Ptr 10s</span></button>
-    <button id="dockLaser" data-tool="laser" class="tool-btn shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center text-rose-400 hover:bg-slate-800" title="Fading Laser"><i data-lucide="wand-sparkles" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none">Laser</span></button>
+    <button id="dockLaser" data-tool="laser" class="tool-btn shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center text-rose-400 hover:bg-slate-800" title="Timed Laser Pointer (Tap again to set timer)"><i data-lucide="wand-sparkles" class="w-4 h-4"></i><span id="dockLaserLabel" class="text-[9px] mt-0.5 leading-none">Laser 3s</span></button>
     <button id="dockPan" data-tool="pan" class="tool-btn shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center text-slate-300 hover:bg-slate-800" title="Free Move / Roam Board"><i data-lucide="hand" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none">Roam</span></button>
     <div class="h-7 border-l border-slate-700 mx-0.5 shrink-0"></div>
     <button id="dockAi" class="shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center text-violet-300 bg-violet-500/15 hover:bg-violet-500/25 border border-violet-500/30" title="AI Assistant"><i data-lucide="sparkles" class="w-4 h-4"></i><span class="text-[9px] mt-0.5 leading-none font-semibold">AI</span></button>
@@ -444,7 +501,7 @@
   </nav>
 
   <!-- BOTTOM-RIGHT PAGE NAVIGATOR PILL -->
-  <div class="fixed bottom-3 right-3 z-30 flex items-center gap-0.5 px-1.5 py-1.5 rounded-2xl dock-pill dock-pill-right">
+  <div id="bottomRightPagePill" class="fixed bottom-3 right-3 z-30 flex items-center gap-0.5 px-1.5 py-1.5 rounded-2xl dock-pill dock-pill-right">
     <button id="btnQuickBgOpen" class="w-10 h-11 rounded-xl flex flex-col items-center justify-center text-emerald-300 hover:bg-slate-800" title="Page Background"><i data-lucide="palette" class="w-4 h-4"></i><span class="text-[9px] leading-none mt-0.5">Bg</span></button>
     <div class="h-7 border-l border-slate-700 mx-0.5"></div>
     <button id="btnPrevPage" class="w-9 h-11 rounded-xl flex items-center justify-center text-slate-200 hover:bg-slate-800 disabled:opacity-35"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
@@ -454,15 +511,24 @@
   </div>
 
   <!-- POPOVERS -->
-  <div id="penStudioPopover" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[94vw] max-w-[540px] max-h-[72vh] overflow-y-auto bg-slate-900/98 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl p-4 z-40 popover-panel">
+  <div id="penStudioPopover" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[94vw] max-w-[540px] max-h-[72vh] overflow-y-auto bg-slate-900/98  border border-slate-700 rounded-2xl shadow-2xl p-4 z-40 popover-panel">
     <div class="flex items-center justify-between mb-3">
-      <div><h3 class="text-xs font-bold uppercase tracking-wider text-white">Writing Pen Studio (13 Pens)</h3><p class="text-[11px] text-slate-400">Select pen nib, ink color, thickness &amp; opacity</p></div>
+      <div><h3 class="text-xs font-bold uppercase tracking-wider text-white">Writing Pen Studio (6 Pro Pens)</h3><p class="text-[11px] text-slate-400">Beauty Pen auto-smooths handwriting + zero-lag ink</p></div>
       <div class="flex items-center gap-1.5">
         <button id="btnStraightLine" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200 flex items-center gap-1"><i data-lucide="ruler" class="w-3.5 h-3.5"></i> Line Lock</button>
         <button id="closePenPopover" class="p-1.5 rounded-lg text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
     </div>
-    <div id="penGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3.5"></div>
+    <div id="penGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3"></div>
+    <div class="flex items-center justify-between gap-2 mb-3 px-2.5 py-2 rounded-xl bg-sky-950/40 border border-sky-500/30">
+      <div class="text-[11px] font-semibold text-sky-300">Handwriting Stabilizer</div>
+      <div class="flex items-center gap-1" id="smoothnessBar">
+        <button data-smooth="0" class="smooth-btn px-2 py-1 rounded-lg text-[10px] font-semibold bg-slate-800 text-slate-300">Off</button>
+        <button data-smooth="0.35" class="smooth-btn px-2 py-1 rounded-lg text-[10px] font-semibold bg-slate-800 text-slate-300">Natural</button>
+        <button data-smooth="0.58" class="smooth-btn active px-2 py-1 rounded-lg text-[10px] font-semibold bg-blue-600 text-white">Beauty+</button>
+        <button data-smooth="0.72" class="smooth-btn px-2 py-1 rounded-lg text-[10px] font-semibold bg-slate-800 text-slate-300">Callig</button>
+      </div>
+    </div>
     <div class="pt-3 border-t border-slate-800 space-y-3">
       <div class="flex items-center gap-2 flex-wrap" id="colorSwatchBar">
         <button data-color="#ffffff" class="swatch-btn active w-7 h-7 rounded-full border border-slate-400" style="background:#ffffff"></button>
@@ -484,7 +550,7 @@
     </div>
   </div>
 
-  <div id="geoToolPopover" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[340px] sm:w-[390px] bg-slate-900/98 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl p-4 z-40 popover-panel">
+  <div id="geoToolPopover" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[340px] sm:w-[390px] bg-slate-900/98  border border-slate-700 rounded-2xl shadow-2xl p-4 z-40 popover-panel">
     <div class="flex items-center justify-between mb-3">
       <div><h3 class="text-xs font-bold uppercase tracking-wider text-sky-300">Tool — Geometry &amp; Trig Box</h3><p class="text-[11px] text-slate-400">Ruler, Prakar, Divider, Protractor, Set Square &amp; Drafter</p></div>
       <button id="closeGeoToolPopover" class="p-1 rounded-lg text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -499,7 +565,7 @@
     </div>
   </div>
 
-  <div id="eraserPopover" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[320px] bg-slate-900/98 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl p-4 z-40 popover-panel">
+  <div id="eraserPopover" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[320px] bg-slate-900/98  border border-slate-700 rounded-2xl shadow-2xl p-4 z-40 popover-panel">
     <div class="flex items-center justify-between mb-2.5">
       <div><h3 class="text-xs font-bold uppercase tracking-wider text-white">Integrated Eraser Suite</h3><p class="text-[11px] text-slate-400">PDF-safe ink eraser + 3-Finger / Palm wipe</p></div>
       <button id="closeEraserPopover" class="p-1 rounded-lg text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -527,7 +593,36 @@
     </div>
   </div>
 
-  <div id="shapePopover" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[290px] bg-slate-900/98 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl p-3.5 z-40 popover-panel">
+  <div id="laserPopover" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[310px] bg-slate-900/98 border border-slate-700 rounded-2xl shadow-2xl p-4 z-40 popover-panel">
+    <div class="flex items-center justify-between mb-3">
+      <div><h3 class="text-xs font-bold uppercase tracking-wider text-white">Timed Laser Pointer</h3><p class="text-[11px] text-slate-400">Set how many seconds laser stays visible</p></div>
+      <button id="closeLaserPopover" class="p-1 text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div class="grid grid-cols-4 gap-1.5 mb-3">
+      <button data-laser-sec="1" class="laser-sec-btn py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs font-semibold border border-slate-700">1s</button>
+      <button data-laser-sec="2" class="laser-sec-btn py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs font-semibold border border-slate-700">2s</button>
+      <button data-laser-sec="3" class="laser-sec-btn py-1.5 rounded-lg bg-rose-600 text-white text-xs font-semibold border border-rose-500">3s</button>
+      <button data-laser-sec="5" class="laser-sec-btn py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs font-semibold border border-slate-700">5s</button>
+      <button data-laser-sec="8" class="laser-sec-btn py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs font-semibold border border-slate-700">8s</button>
+      <button data-laser-sec="10" class="laser-sec-btn py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs font-semibold border border-slate-700">10s</button>
+      <button data-laser-sec="15" class="laser-sec-btn py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs font-semibold border border-slate-700">15s</button>
+      <button data-laser-sec="30" class="laser-sec-btn py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs font-semibold border border-slate-700">30s</button>
+    </div>
+    <div class="mb-3">
+      <div class="flex justify-between text-[11px] text-slate-300 mb-1"><span>Custom Timer</span><span id="laserTimerVal" class="font-mono text-rose-400 font-bold">3s</span></div>
+      <input id="laserTimerSlider" type="range" min="1" max="30" value="3" class="w-full accent-rose-500" />
+    </div>
+    <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+      <span class="text-[11px] text-slate-300">Laser Color</span>
+      <div class="flex items-center gap-2">
+        <button data-laser-color="#ff2a55" class="laser-color-btn w-6 h-6 rounded-full bg-[#ff2a55] border-2 border-white"></button>
+        <button data-laser-color="#facc15" class="laser-color-btn w-6 h-6 rounded-full bg-[#facc15] border border-slate-600"></button>
+        <button data-laser-color="#38bdf8" class="laser-color-btn w-6 h-6 rounded-full bg-[#38bdf8] border border-slate-600"></button>
+        <button data-laser-color="#22c55e" class="laser-color-btn w-6 h-6 rounded-full bg-[#22c55e] border border-slate-600"></button>
+      </div>
+    </div>
+  </div>
+  <div id="shapePopover" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[290px] bg-slate-900/98  border border-slate-700 rounded-2xl shadow-2xl p-3.5 z-40 popover-panel">
     <div class="flex items-center justify-between mb-2"><h3 class="text-xs font-bold uppercase text-slate-200">2D &amp; 3D Shapes</h3><button id="closeShapePopover" class="p-1 text-slate-400 hover:text-white"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div>
     <div class="grid grid-cols-3 gap-1.5">
       <button data-shape="line" class="shape-opt-btn p-2 rounded-lg border border-slate-700 bg-slate-800/70 flex flex-col items-center gap-1 text-[10px]"><i data-lucide="minus" class="w-4 h-4"></i>Line</button>
@@ -545,7 +640,7 @@
     <label class="mt-2.5 flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input id="shapeFillToggle" type="checkbox" class="rounded" /><span>Translucent Shape Fill</span></label>
   </div>
 
-  <div id="ifpToolsPopover" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[340px] sm:w-[380px] bg-slate-900/98 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl p-4 z-40 popover-panel">
+  <div id="ifpToolsPopover" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[340px] sm:w-[380px] bg-slate-900/98  border border-slate-700 rounded-2xl shadow-2xl p-4 z-40 popover-panel">
     <div class="flex items-center justify-between mb-2.5"><h3 class="text-xs font-bold uppercase text-amber-300">IFP Classroom Kit</h3><button id="closeIfpToolsPopover" class="p-1 text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button></div>
     <div class="grid grid-cols-2 gap-2">
       <button id="btnToolSpotlight" class="flex items-center gap-2 p-2 rounded-xl border border-slate-700 bg-slate-800/60 text-left"><div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center"><i data-lucide="sun" class="w-4 h-4"></i></div><div><div class="text-xs font-semibold text-white">Spotlight</div><div class="text-[10px] text-slate-400">Focus beam</div></div></button>
@@ -573,12 +668,12 @@
   <div id="timerWidget" class="geo-widget hidden bg-slate-900/95 border border-slate-700 rounded-2xl shadow-2xl p-3.5 w-64" style="right: 28px; top: 64px;"><div class="flex justify-between mb-2"><span class="text-xs font-semibold text-rose-400">Classroom Timer</span><button id="btnCloseTimer" class="p-1 text-slate-400 hover:text-white"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div><div id="timerDisplay" class="text-3xl font-mono font-bold text-center text-white py-2 bg-slate-950 rounded-xl border border-slate-800">05:00</div><div class="grid grid-cols-4 gap-1 my-2"><button data-timer-sec="60" class="timer-preset py-1 rounded-lg bg-slate-800 text-[11px]">1m</button><button data-timer-sec="180" class="timer-preset py-1 rounded-lg bg-slate-800 text-[11px]">3m</button><button data-timer-sec="300" class="timer-preset py-1 rounded-lg bg-slate-800 text-[11px]">5m</button><button data-timer-sec="600" class="timer-preset py-1 rounded-lg bg-slate-800 text-[11px]">10m</button></div><div class="flex gap-2"><button id="btnTimerStartPause" class="flex-1 py-1.5 rounded-lg bg-blue-600 text-xs font-semibold text-white">Start</button><button id="btnTimerReset" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-slate-200">Reset</button></div></div>
   <div id="pianoWidget" class="geo-widget hidden bg-slate-900/95 border border-slate-700 rounded-2xl shadow-2xl p-3 w-[340px]" style="left: 50%; top: 80px; transform: translateX(-50%);"><div class="flex justify-between mb-2"><span class="text-xs font-semibold text-amber-300">Classroom Piano</span><button id="btnClosePiano" class="p-1 text-slate-400 hover:text-white"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div><div id="pianoKeys" class="flex gap-1 h-28"></div></div>
 
-  <div id="functionModal" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5"><h3 class="text-sm font-semibold text-white mb-1">Plot Math Function</h3><input id="funcExprInput" type="text" value="sin(x)" class="w-full mt-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-white"/><div class="flex gap-1.5 mt-2 flex-wrap"><button data-fn="sin(x)" class="fn-chip px-2 py-0.5 rounded bg-slate-800 text-[11px]">sin(x)</button><button data-fn="cos(x)" class="fn-chip px-2 py-0.5 rounded bg-slate-800 text-[11px]">cos(x)</button><button data-fn="x*x/4" class="fn-chip px-2 py-0.5 rounded bg-slate-800 text-[11px]">x²/4</button><button data-fn="2*x-1" class="fn-chip px-2 py-0.5 rounded bg-slate-800 text-[11px]">2x-1</button></div><div class="flex justify-end gap-2 mt-4"><button id="btnCancelFunc" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs">Cancel</button><button id="btnPlotFunc" class="px-3.5 py-1.5 rounded-lg bg-blue-600 text-xs font-semibold text-white">Stamp Graph</button></div></div></div>
-  <div id="equationModal" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5"><h3 class="text-sm font-semibold text-white mb-2">Equation Inserter</h3><input id="equationInput" type="text" value="E = mc²" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-base font-semibold text-white mb-2.5"/><div id="eqSymbolGrid" class="grid grid-cols-8 gap-1 mb-4"></div><div class="flex justify-end gap-2"><button id="btnCancelEq" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs">Cancel</button><button id="btnInsertEq" class="px-3.5 py-1.5 rounded-lg bg-blue-600 text-xs font-semibold text-white">Insert</button></div></div></div>
-  <div id="tableModal" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xs w-full p-5"><h3 class="text-sm font-semibold text-white mb-2">Insert Table</h3><div class="grid grid-cols-2 gap-3"><label class="text-xs text-slate-300">Rows<input id="tableRowsInput" type="number" min="2" max="12" value="4" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-white"/></label><label class="text-xs text-slate-300">Cols<input id="tableColsInput" type="number" min="2" max="8" value="3" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-white"/></label></div><div class="flex justify-end gap-2 mt-4"><button id="btnCancelTable" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs">Cancel</button><button id="btnConfirmTable" class="px-3.5 py-1.5 rounded-lg bg-blue-600 text-xs font-semibold text-white">Insert</button></div></div></div>
+  <div id="functionModal" class="hidden fixed inset-0 bg-slate-950/75  z-50 flex items-center justify-center p-4"><div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5"><h3 class="text-sm font-semibold text-white mb-1">Plot Math Function</h3><input id="funcExprInput" type="text" value="sin(x)" class="w-full mt-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-white"/><div class="flex gap-1.5 mt-2 flex-wrap"><button data-fn="sin(x)" class="fn-chip px-2 py-0.5 rounded bg-slate-800 text-[11px]">sin(x)</button><button data-fn="cos(x)" class="fn-chip px-2 py-0.5 rounded bg-slate-800 text-[11px]">cos(x)</button><button data-fn="x*x/4" class="fn-chip px-2 py-0.5 rounded bg-slate-800 text-[11px]">x²/4</button><button data-fn="2*x-1" class="fn-chip px-2 py-0.5 rounded bg-slate-800 text-[11px]">2x-1</button></div><div class="flex justify-end gap-2 mt-4"><button id="btnCancelFunc" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs">Cancel</button><button id="btnPlotFunc" class="px-3.5 py-1.5 rounded-lg bg-blue-600 text-xs font-semibold text-white">Stamp Graph</button></div></div></div>
+  <div id="equationModal" class="hidden fixed inset-0 bg-slate-950/75  z-50 flex items-center justify-center p-4"><div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5"><h3 class="text-sm font-semibold text-white mb-2">Equation Inserter</h3><input id="equationInput" type="text" value="E = mc²" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-base font-semibold text-white mb-2.5"/><div id="eqSymbolGrid" class="grid grid-cols-8 gap-1 mb-4"></div><div class="flex justify-end gap-2"><button id="btnCancelEq" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs">Cancel</button><button id="btnInsertEq" class="px-3.5 py-1.5 rounded-lg bg-blue-600 text-xs font-semibold text-white">Insert</button></div></div></div>
+  <div id="tableModal" class="hidden fixed inset-0 bg-slate-950/75  z-50 flex items-center justify-center p-4"><div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xs w-full p-5"><h3 class="text-sm font-semibold text-white mb-2">Insert Table</h3><div class="grid grid-cols-2 gap-3"><label class="text-xs text-slate-300">Rows<input id="tableRowsInput" type="number" min="2" max="12" value="4" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-white"/></label><label class="text-xs text-slate-300">Cols<input id="tableColsInput" type="number" min="2" max="8" value="3" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-white"/></label></div><div class="flex justify-end gap-2 mt-4"><button id="btnCancelTable" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs">Cancel</button><button id="btnConfirmTable" class="px-3.5 py-1.5 rounded-lg bg-blue-600 text-xs font-semibold text-white">Insert</button></div></div></div>
 
   <!-- 75" IFP CUSTOMIZE MODAL -->
-  <div id="ifpSettingsModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div id="ifpSettingsModal" class="hidden fixed inset-0 bg-slate-950/80  z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[86vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
         <div><h3 class="text-base font-semibold text-white">75&quot; Android 16 IFP Customization</h3><p class="text-xs text-slate-400">Infinite Canvas, Palm Gesture, Touch Scale &amp; Colors</p></div>
@@ -620,8 +715,8 @@
     </div>
   </div>
 
-  <div id="passwordModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5"><h3 class="text-sm font-semibold text-white">Protected PDF</h3><input id="pdfPasswordInput" type="password" placeholder="PDF password..." class="w-full mt-3 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white"/><p id="pdfPasswordError" class="hidden text-xs text-rose-400 mt-1.5">Incorrect password.</p><div class="flex justify-end gap-2 mt-4"><button id="btnCancelPassword" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs">Cancel</button><button id="btnSubmitPassword" class="px-3.5 py-1.5 rounded-lg bg-blue-600 text-xs font-semibold text-white">Unlock</button></div></div></div>
-  <div id="loadingOverlay" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center"><div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 w-80 text-center"><div class="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div><div id="loadingTitle" class="text-sm font-semibold text-white">Working...</div><div id="loadingSub" class="text-xs text-slate-400 mt-1"></div></div></div>
+  <div id="passwordModal" class="hidden fixed inset-0 bg-slate-950/80  z-50 flex items-center justify-center p-4"><div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5"><h3 class="text-sm font-semibold text-white">Protected PDF</h3><input id="pdfPasswordInput" type="password" placeholder="PDF password..." class="w-full mt-3 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white"/><p id="pdfPasswordError" class="hidden text-xs text-rose-400 mt-1.5">Incorrect password.</p><div class="flex justify-end gap-2 mt-4"><button id="btnCancelPassword" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs">Cancel</button><button id="btnSubmitPassword" class="px-3.5 py-1.5 rounded-lg bg-blue-600 text-xs font-semibold text-white">Unlock</button></div></div></div>
+  <div id="loadingOverlay" class="hidden fixed inset-0 bg-slate-950/75  z-50 flex items-center justify-center"><div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 w-80 text-center"><div class="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div><div id="loadingTitle" class="text-sm font-semibold text-white">Working...</div><div id="loadingSub" class="text-xs text-slate-400 mt-1"></div></div></div>
   <div id="toastContainer" class="fixed top-14 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
   <script>
@@ -634,18 +729,11 @@
       }
 
       const PEN_TYPES = [
-        { id: 'ballpoint',   name: 'Ballpoint',     desc: 'Smooth everyday ink',     defaultSize: 4,  defaultOpacity: 1.0,  badge: '#3b82f6' },
+        { id: 'beauty',      name: 'Beauty Pen ✨', desc: 'Auto-neat handwriting',   defaultSize: 5,  defaultOpacity: 1.0,  badge: '#38bdf8' },
         { id: 'fountain',    name: 'Fountain Pen',  desc: 'Dynamic thick-thin nib',  defaultSize: 6,  defaultOpacity: 1.0,  badge: '#6366f1' },
-        { id: 'calligraphy', name: 'Calligraphy',   desc: 'Angled broad chisel',     defaultSize: 10, defaultOpacity: 1.0,  badge: '#8b5cf6' },
-        { id: 'gel',         name: 'Gel Fineliner', desc: 'Crisp uniform technical', defaultSize: 3,  defaultOpacity: 1.0,  badge: '#0ea5e9' },
-        { id: 'marker',      name: 'Felt Marker',   desc: 'Bold studio chisel tip',  defaultSize: 12, defaultOpacity: 0.9,  badge: '#f97316' },
+        { id: 'gel',         name: 'Gel Pen',       desc: 'Crisp uniform math pen',  defaultSize: 3,  defaultOpacity: 1.0,  badge: '#0ea5e9' },
+        { id: 'marker',      name: 'Marker',        desc: 'Bold heading & emphasis', defaultSize: 12, defaultOpacity: 0.92, badge: '#f97316' },
         { id: 'highlighter', name: 'Highlighter',   desc: 'PDF-safe translucent',    defaultSize: 24, defaultOpacity: 0.36, badge: '#eab308' },
-        { id: 'brush',       name: 'Water Brush',   desc: 'Soft expressive taper',   defaultSize: 14, defaultOpacity: 0.78, badge: '#14b8a6' },
-        { id: 'pencil',      name: 'Pencil',        desc: 'Graphite sketch grain',   defaultSize: 4,  defaultOpacity: 0.85, badge: '#94a3b8' },
-        { id: 'chalk',       name: 'Chalk / Pastel',desc: 'Dusty board texture',     defaultSize: 14, defaultOpacity: 0.92, badge: '#f8fafc' },
-        { id: 'neon',        name: 'Neon Glow',     desc: 'Luminous glowing core',   defaultSize: 6,  defaultOpacity: 1.0,  badge: '#ec4899' },
-        { id: 'rainbow',     name: 'Rainbow',       desc: 'Color-cycling ink',       defaultSize: 7,  defaultOpacity: 1.0,  badge: '#f43f5e' },
-        { id: 'dashed',      name: 'Dashed Line',   desc: 'Geometry & connectors',   defaultSize: 3,  defaultOpacity: 1.0,  badge: '#22c55e' },
         { id: 'smart',       name: 'Smart Shape',   desc: 'Auto-snaps drawn shapes', defaultSize: 4,  defaultOpacity: 1.0,  badge: '#a855f7' }
       ];
 
@@ -656,17 +744,31 @@
         notebooks: [],
         activeNotebookId: null,
         activePageIndex: 0,
-        tool: 'pen', // pen | eraser | shape | text | select | blink-pointer | laser | pan
-        penType: 'ballpoint',
+        appMode: 'board', // board | android-pdf | presentation
+        fitMode: 'page', // page | width
+        smoothness: 0.58, // 0..0.72 handwriting stabilizer
+        laserDuration: 3, // seconds (1..30)
+        laserColor: '#ff2a55',
+        gestureGpuActive: false,
+        gestureStartZoom: 1,
+        gestureStartPanX: 0,
+        gestureStartPanY: 0,
+        dpr: Math.min(window.devicePixelRatio || 1, 1.5),
+        viewW: 1280,
+        viewH: 720,
+        liveRafPending: false,
+        saveTimer: null,
+        tool: 'pen', // pen | eraser | shape | text | select | blink-pointer | laser | pan | whiteout
+        penType: 'beauty',
         eraserMode: 'pixel',
         shapeType: 'arrow',
         shapeFill: false,
         color: '#ffffff',
-        size: 4,
-        eraserSize: 36,
+        size: 5,
+        eraserSize: 42,
         opacity: 1.0,
         straightLine: false,
-        pdfScale: 2,
+        pdfScale: 3,
         selectedIndices: [],
         inputDirHandle: null,
         inputLibrary: [],
@@ -712,9 +814,9 @@
       const bgCanvas = document.getElementById('bgCanvas');
       const inkCanvas = document.getElementById('inkCanvas');
       const liveCanvas = document.getElementById('liveCanvas');
-      const bgCtx = bgCanvas.getContext('2d');
-      const inkCtx = inkCanvas.getContext('2d');
-      const liveCtx = liveCanvas.getContext('2d');
+      const bgCtx = bgCanvas.getContext('2d', { alpha: false });
+      const inkCtx = inkCanvas.getContext('2d', { alpha: true });
+      const liveCtx = liveCanvas.getContext('2d', { alpha: true });
       const textEditor = document.getElementById('textEditorOverlay');
       const stickyLayer = document.getElementById('stickyLayer');
 
@@ -774,7 +876,12 @@
         updateUndoRedoButtons();
       }
 
-      function saveToLocalStorage() {
+      function saveToLocalStorage(immediate = false) {
+        if (!immediate) {
+          if (state.saveTimer) clearTimeout(state.saveTimer);
+          state.saveTimer = setTimeout(() => saveToLocalStorage(true), 700);
+          return;
+        }
         try {
           const slim = state.notebooks.map(nb => ({
             id: nb.id, name: nb.name, updatedAt: nb.updatedAt,
@@ -832,15 +939,20 @@
         return '#ffffff';
       }
 
-      // ==================== FULL-VIEWPORT CANVAS SIZING & WORLD COORDS ====================
+      // ==================== FULL-VIEWPORT 4K RETINA CANVAS SIZING & WORLD COORDS ====================
       function syncCanvasViewportSize() {
         const rect = boardViewport.getBoundingClientRect();
         const w = Math.max(300, Math.round(rect.width));
         const h = Math.max(300, Math.round(rect.height));
-        if (bgCanvas.width !== w || bgCanvas.height !== h) {
-          bgCanvas.width = w; bgCanvas.height = h;
-          inkCanvas.width = w; inkCanvas.height = h;
-          liveCanvas.width = w; liveCanvas.height = h;
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        state.dpr = dpr;
+        state.viewW = w;
+        state.viewH = h;
+        const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+        if (bgCanvas.width !== pw || bgCanvas.height !== ph) {
+          bgCanvas.width = pw; bgCanvas.height = ph;
+          inkCanvas.width = pw; inkCanvas.height = ph;
+          liveCanvas.width = pw; liveCanvas.height = ph;
         }
       }
 
@@ -865,8 +977,9 @@
       // ==================== INFINITE BACKGROUND + PDF/IMAGE RENDERER (ZERO FLASH!) ====================
       function drawInfiniteBoardBackground(ctx, w, h, page) {
         const fill = getBoardBaseFill(page);
+        const dpr = state.dpr || 1;
         ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.fillStyle = fill;
         ctx.fillRect(0, 0, w, h);
 
@@ -903,24 +1016,68 @@
 
       async function ensurePdfPageBitmap(page) {
         if (!page || page.kind !== 'pdf' || !page.pdfKey || !state.pdfDocs[page.pdfKey]) return null;
-        const key = `${page.pdfKey}_${page.pdfPageNum}`;
-        if (state.pdfBitmapCache[key]) return state.pdfBitmapCache[key];
+        const rot = page.pdfRotation || 0;
+        const targetSc = Math.max(2.0, Math.min(3.5, state.pdfScale || 3));
+        const key = `${page.pdfKey}_${page.pdfPageNum}_r${rot}_s${targetSc}`;
+        if (state.pdfBitmapCache[key]) {
+          const cached = state.pdfBitmapCache[key];
+          page.docW = cached.width; page.docH = cached.height;
+          return cached;
+        }
         try {
           const pdfPage = await state.pdfDocs[page.pdfKey].getPage(page.pdfPageNum);
-          const vp = pdfPage.getViewport({ scale: 1 });
-          const sc = Math.max(1.5, Math.min(2.6, state.pdfScale || 2));
-          const svp = pdfPage.getViewport({ scale: sc });
+          const vp1 = pdfPage.getViewport({ scale: 1, rotation: rot });
+          const maxDim = 4096;
+          const safeSc = Math.min(targetSc, maxDim / Math.max(1, vp1.width, vp1.height));
+          const svp = pdfPage.getViewport({ scale: Math.max(1.8, safeSc), rotation: rot });
           const off = document.createElement('canvas');
           off.width = Math.round(svp.width);
           off.height = Math.round(svp.height);
-          const oCtx = off.getContext('2d');
+          const oCtx = off.getContext('2d', { alpha: false });
+          oCtx.imageSmoothingEnabled = true;
+          oCtx.imageSmoothingQuality = 'high';
           oCtx.fillStyle = '#ffffff'; oCtx.fillRect(0, 0, off.width, off.height);
-          await pdfPage.render({ canvasContext: oCtx, viewport: svp }).promise;
+          await pdfPage.render({ canvasContext: oCtx, viewport: svp, intent: 'display' }).promise;
           page.docW = off.width;
           page.docH = off.height;
+          // Auto-sample PDF edge background color so board background seamlessly matches PDF!
+          try {
+            const cw = off.width, ch = off.height;
+            const pts = [
+              [4, 4], [cw - 5, 4], [4, ch - 5], [cw - 5, ch - 5],
+              [Math.floor(cw / 2), 4], [Math.floor(cw / 2), ch - 5],
+              [4, Math.floor(ch / 2)], [cw - 5, Math.floor(ch / 2)]
+            ];
+            const buckets = {};
+            let bestHex = null, bestCount = 0;
+            for (const [px, py] of pts) {
+              const d = oCtx.getImageData(Math.max(0, px), Math.max(0, py), 1, 1).data;
+              const hex = '#' + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, '0')).join('');
+              // Group very similar shades within +/-4
+              const qKey = `${Math.round(d[0]/6)*6},${Math.round(d[1]/6)*6},${Math.round(d[2]/6)*6}`;
+              if (!buckets[qKey]) buckets[qKey] = { count: 0, hex };
+              buckets[qKey].count++;
+              if (buckets[qKey].count > bestCount) { bestCount = buckets[qKey].count; bestHex = buckets[qKey].hex; }
+            }
+            if (bestHex) {
+              page.detectedPdfBg = bestHex;
+              if (!page.userOverrodeBg) {
+                page.template = 'custom';
+                page.customBg = bestHex;
+              }
+            }
+          } catch (e) {}
           state.pdfBitmapCache[key] = off;
           return off;
         } catch (err) { return null; }
+      }
+
+      function prefetchNextPdfPage(nb, idx) {
+        if (!nb || !nb.pages[idx + 1]) return;
+        const nextPg = nb.pages[idx + 1];
+        if (nextPg && nextPg.kind === 'pdf') {
+          setTimeout(() => { ensurePdfPageBitmap(nextPg); }, 140);
+        }
       }
 
       async function ensureImagePageBitmap(page) {
@@ -937,53 +1094,59 @@
       async function renderFullScene(page, fetchAsync = false) {
         if (!page) return;
         syncCanvasViewportSize();
-        const w = bgCanvas.width, h = bgCanvas.height;
+        const w = state.viewW, h = state.viewH, dpr = state.dpr || 1;
 
         // Pre-fetch PDF/Image bitmap offscreen BEFORE drawing so there is ZERO white flash!
         let docImg = null;
         if (page.kind === 'pdf') {
-          docImg = state.pdfBitmapCache[`${page.pdfKey}_${page.pdfPageNum}`] || (fetchAsync ? await ensurePdfPageBitmap(page) : null);
+          const rot = page.pdfRotation || 0;
+          const targetSc = Math.max(2.0, Math.min(3.5, state.pdfScale || 3));
+          const key = `${page.pdfKey}_${page.pdfPageNum}_r${rot}_s${targetSc}`;
+          docImg = state.pdfBitmapCache[key] || (fetchAsync ? await ensurePdfPageBitmap(page) : null);
         } else if (page.kind === 'image') {
           docImg = state.imageCache[page.id] || (fetchAsync ? await ensureImagePageBitmap(page) : null);
         }
 
-        // 1. Draw infinite seamless board background everywhere (so shrinking/moving ALWAYS leaves writeable plain board!)
         const fill = getBoardBaseFill(page);
         boardViewport.style.background = fill;
         document.body.style.background = fill;
         drawInfiniteBoardBackground(bgCtx, w, h, page);
 
-        // 2. If PDF or Image page, draw the document sheet cleanly in world coordinates
         if (docImg) {
           bgCtx.save();
-          bgCtx.setTransform(page.zoom, 0, 0, page.zoom, page.panX, page.panY);
-          bgCtx.shadowColor = 'rgba(0,0,0,0.38)';
-          bgCtx.shadowBlur = 24 / page.zoom;
-          bgCtx.fillStyle = '#ffffff';
-          bgCtx.fillRect(0, 0, page.docW, page.docH);
-          bgCtx.shadowBlur = 0;
+          bgCtx.setTransform(page.zoom * dpr, 0, 0, page.zoom * dpr, page.panX * dpr, page.panY * dpr);
+          bgCtx.imageSmoothingEnabled = true;
+          bgCtx.imageSmoothingQuality = 'high';
           bgCtx.drawImage(docImg, 0, 0, page.docW, page.docH);
           bgCtx.restore();
         }
 
-        // 3. Draw committed ink layer in world coordinates
         redrawInkLayer(page);
-        // 4. Update sticky notes screen positions
         renderStickies(page);
         document.getElementById('zoomPercent').textContent = Math.round(page.zoom * 100) + '%';
         document.getElementById('orientLabel').textContent = page.orientation === 'portrait' ? 'Portrait' : 'Landscape';
+        if (fetchAsync) prefetchNextPdfPage(getActiveNotebook(), state.activePageIndex);
       }
 
-      function centerDocumentInView(page) {
+      function centerDocumentInView(page, forceFitMode = null) {
         if (!page) return;
         syncCanvasViewportSize();
-        const w = bgCanvas.width, h = bgCanvas.height;
+        const w = state.viewW, h = state.viewH;
+        const mode = forceFitMode || state.fitMode || 'page';
         if (page.kind === 'pdf' || page.kind === 'image') {
-          const padW = 40, padH = 110;
-          const sc = Math.min((w - padW) / Math.max(1, page.docW), (h - padH) / Math.max(1, page.docH), 1.25);
-          page.zoom = Math.max(0.25, Math.round(sc * 100) / 100);
-          page.panX = Math.round((w - page.docW * page.zoom) / 2);
-          page.panY = Math.round((h - 48 - page.docH * page.zoom) / 2);
+          let sc;
+          if (mode === 'width') {
+            sc = w / Math.max(1, page.docW);
+            page.zoom = Math.max(0.2, Math.min(4, Math.round(sc * 1000) / 1000));
+            page.panX = Math.round((w - page.docW * page.zoom) / 2);
+            page.panY = 0;
+          } else {
+            // True 100% edge-to-edge fitted PDF!
+            sc = Math.min(w / Math.max(1, page.docW), h / Math.max(1, page.docH));
+            page.zoom = Math.max(0.2, Math.min(4, Math.round(sc * 1000) / 1000));
+            page.panX = Math.round((w - page.docW * page.zoom) / 2);
+            page.panY = Math.round((h - page.docH * page.zoom) / 2);
+          }
         } else {
           page.zoom = 1;
           page.panX = 0;
@@ -1012,7 +1175,27 @@
         }
         const pen = item.penType || 'ballpoint', baseSize = item.size || 4, opacity = item.opacity !== undefined ? item.opacity : 1, color = item.color || '#ffffff';
         ctx.globalAlpha = opacity; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-        if (pen === 'highlighter') { ctx.globalCompositeOperation = isDarkBoard ? 'screen' : 'multiply'; ctx.lineCap = 'butt'; ctx.strokeStyle = color; ctx.lineWidth = baseSize; traceSmoothPath(ctx, pts); ctx.stroke(); }
+        if (pen === 'beauty') {
+          ctx.strokeStyle = color;
+          if (pts.length === 1) {
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.arc(pts[0].x, pts[0].y, baseSize * 0.5, 0, Math.PI * 2); ctx.fill();
+          } else {
+            let prevMidX = pts[0].x, prevMidY = pts[0].y;
+            for (let i = 1; i < pts.length; i++) {
+              const p0 = pts[i - 1], p1 = pts[i];
+              const midX = (p0.x + p1.x) * 0.5, midY = (p0.y + p1.y) * 0.5;
+              const wSeg = p1.w || baseSize;
+              const endTaper = i < 3 ? (0.72 + i * 0.09) : (i > pts.length - 4 ? Math.max(0.55, 1 - (i - (pts.length - 4)) * 0.14) : 1);
+              ctx.lineWidth = Math.max(1.1, wSeg * endTaper);
+              ctx.beginPath();
+              ctx.moveTo(prevMidX, prevMidY);
+              ctx.quadraticCurveTo(p0.x, p0.y, midX, midY);
+              ctx.stroke();
+              prevMidX = midX; prevMidY = midY;
+            }
+          }
+        } else if (pen === 'highlighter') { ctx.globalCompositeOperation = isDarkBoard ? 'screen' : 'multiply'; ctx.lineCap = 'butt'; ctx.strokeStyle = color; ctx.lineWidth = baseSize; traceSmoothPath(ctx, pts); ctx.stroke(); }
         else if (pen === 'gel' || pen === 'smart') { ctx.strokeStyle = color; ctx.lineWidth = baseSize; traceSmoothPath(ctx, pts); ctx.stroke(); }
         else if (pen === 'dashed') { ctx.strokeStyle = color; ctx.lineWidth = baseSize; ctx.setLineDash([Math.max(8, baseSize * 3), Math.max(6, baseSize * 2)]); traceSmoothPath(ctx, pts); ctx.stroke(); }
         else if (pen === 'marker') { ctx.lineCap = 'square'; ctx.strokeStyle = color; ctx.lineWidth = baseSize; traceSmoothPath(ctx, pts); ctx.stroke(); }
@@ -1102,18 +1285,98 @@
         if (img.complete && img.naturalWidth > 0) ctx.drawImage(img, item.x, item.y, item.w, item.h);
       }
 
+      function drawWhiteoutItem(ctx, item) {
+        ctx.save();
+        ctx.fillStyle = item.color || '#ffffff';
+        const x = Math.min(item.x1, item.x2), y = Math.min(item.y1, item.y2);
+        const w = Math.abs(item.x2 - item.x1), h = Math.abs(item.y2 - item.y1);
+        ctx.fillRect(x, y, w, h);
+        ctx.restore();
+      }
+
+      function drawSingleItem(ctx, it, isDark) {
+        if (it.type === 'overlay-image') drawOverlayImageItem(ctx, it);
+        else if (it.type === 'whiteout') drawWhiteoutItem(ctx, it);
+        else if (it.type === 'stroke' || it.type === 'pixel-eraser') drawStrokeItem(ctx, it, isDark);
+        else if (it.type === 'shape') drawShapeItem(ctx, it);
+        else if (it.type === 'text') drawTextItem(ctx, it);
+      }
+
+      function stampSingleItemToInk(page, it) {
+        if (!page || !it) return;
+        const dpr = state.dpr || 1;
+        inkCtx.save();
+        inkCtx.setTransform(page.zoom * dpr, 0, 0, page.zoom * dpr, page.panX * dpr, page.panY * dpr);
+        drawSingleItem(inkCtx, it, page.kind === 'blank' && isPageDarkBoard(page));
+        inkCtx.restore();
+      }
+
+      // O(1) INSTANT ZERO-LAG ERASER SEGMENT (never redraws whole page!)
+      function stampEraserSegment(page, p0, p1, size) {
+        if (!page) return;
+        const dpr = state.dpr || 1;
+        inkCtx.save();
+        inkCtx.setTransform(page.zoom * dpr, 0, 0, page.zoom * dpr, page.panX * dpr, page.panY * dpr);
+        inkCtx.globalCompositeOperation = 'destination-out';
+        inkCtx.strokeStyle = 'rgba(0,0,0,1)';
+        inkCtx.lineWidth = size;
+        inkCtx.lineCap = 'round';
+        inkCtx.lineJoin = 'round';
+        inkCtx.beginPath();
+        inkCtx.moveTo(p0.x, p0.y);
+        inkCtx.lineTo(p1.x, p1.y);
+        inkCtx.stroke();
+        inkCtx.restore();
+      }
+
+      // O(1) INSTANT ZERO-LAG LIVE PEN SEGMENT (never clears liveCanvas mid-stroke!)
+      function canDrawIncrementally(stroke) {
+        if (!stroke || state.straightLine || state.shiftHeld) return false;
+        const p = stroke.penType;
+        return p === 'beauty' || p === 'ballpoint' || p === 'gel' || p === 'fountain' || p === 'calligraphy' || p === 'marker' || p === 'rainbow' || p === 'smart';
+      }
+
+      function drawIncrementalLiveSegment(page, stroke) {
+        const pts = stroke.points;
+        const n = pts.length;
+        if (!page || n < 2) return;
+        const dpr = state.dpr || 1;
+        liveCtx.save();
+        liveCtx.setTransform(page.zoom * dpr, 0, 0, page.zoom * dpr, page.panX * dpr, page.panY * dpr);
+        liveCtx.globalAlpha = stroke.opacity !== undefined ? stroke.opacity : 1;
+        liveCtx.lineCap = stroke.penType === 'marker' ? 'square' : 'round';
+        liveCtx.lineJoin = 'round';
+        const pPrev = pts[n - 2], pCurr = pts[n - 1];
+        const pPrev2 = n >= 3 ? pts[n - 3] : pPrev;
+        const m0x = (pPrev2.x + pPrev.x) * 0.5, m0y = (pPrev2.y + pPrev.y) * 0.5;
+        const m1x = (pPrev.x + pCurr.x) * 0.5, m1y = (pPrev.y + pCurr.y) * 0.5;
+        if (stroke.penType === 'rainbow') {
+          liveCtx.strokeStyle = `hsl(${(n * 5 + (stroke.seed || 0)) % 360}, 92%, 55%)`;
+          liveCtx.lineWidth = stroke.size;
+        } else if (stroke.penType === 'beauty' || stroke.penType === 'fountain') {
+          liveCtx.strokeStyle = stroke.color;
+          liveCtx.lineWidth = pCurr.w || stroke.size;
+        } else {
+          liveCtx.strokeStyle = stroke.color;
+          liveCtx.lineWidth = stroke.size;
+        }
+        liveCtx.beginPath();
+        liveCtx.moveTo(n === 2 ? pPrev.x : m0x, n === 2 ? pPrev.y : m0y);
+        liveCtx.quadraticCurveTo(pPrev.x, pPrev.y, m1x, m1y);
+        liveCtx.stroke();
+        liveCtx.restore();
+      }
+
       function redrawInkLayer(page) {
         if (!page) return;
+        const dpr = state.dpr || 1;
         inkCtx.save();
         inkCtx.setTransform(1, 0, 0, 1, 0, 0);
         inkCtx.clearRect(0, 0, inkCanvas.width, inkCanvas.height);
-        inkCtx.setTransform(page.zoom, 0, 0, page.zoom, page.panX, page.panY);
+        inkCtx.setTransform(page.zoom * dpr, 0, 0, page.zoom * dpr, page.panX * dpr, page.panY * dpr);
         const isDark = page.kind === 'blank' && isPageDarkBoard(page);
         for (const it of page.items) {
-          if (it.type === 'overlay-image') drawOverlayImageItem(inkCtx, it);
-          else if (it.type === 'stroke' || it.type === 'pixel-eraser') drawStrokeItem(inkCtx, it, isDark);
-          else if (it.type === 'shape') drawShapeItem(inkCtx, it);
-          else if (it.type === 'text') drawTextItem(inkCtx, it);
+          drawSingleItem(inkCtx, it, isDark);
         }
         inkCtx.restore();
         drawSelectionHighlights(page);
@@ -1121,6 +1384,7 @@
 
       function getItemBounds(item) {
         if (item.type === 'overlay-image') return { x: item.x, y: item.y, w: item.w, h: item.h };
+        if (item.type === 'whiteout') return { x: Math.min(item.x1, item.x2), y: Math.min(item.y1, item.y2), w: Math.abs(item.x2 - item.x1), h: Math.abs(item.y2 - item.y1) };
         if (item.type === 'stroke' || item.type === 'pixel-eraser') {
           let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
           for (const p of item.points) { if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y; }
@@ -1143,7 +1407,7 @@
         if (state.animLoopId) return;
         function tick() {
           const now = performance.now(), page = getActivePage();
-          state.laserTrails = state.laserTrails.filter(pt => now - pt.t < 1100);
+          state.laserTrails = state.laserTrails.filter(pt => now - pt.t < (pt.dur || 3000));
           state.blinkPointers = state.blinkPointers.filter(bp => now - bp.createdAt < bp.duration);
 
           if (!state.isDrawing || state.tool === 'laser' || state.tool === 'blink-pointer') {
@@ -1153,18 +1417,32 @@
           }
 
           if (page) {
+            const dpr = state.dpr || 1;
             liveCtx.save();
-            liveCtx.setTransform(page.zoom, 0, 0, page.zoom, page.panX, page.panY);
+            liveCtx.setTransform(page.zoom * dpr, 0, 0, page.zoom * dpr, page.panX * dpr, page.panY * dpr);
             if (state.laserTrails.length > 1) {
+              liveCtx.lineCap = 'round'; liveCtx.lineJoin = 'round';
               for (let i = 1; i < state.laserTrails.length; i++) {
                 const p0 = state.laserTrails[i - 1], p1 = state.laserTrails[i];
                 if (p1.break) continue;
-                const alpha = Math.max(0, 1 - (now - p1.t) / 1100);
-                liveCtx.save(); liveCtx.globalAlpha = alpha; liveCtx.strokeStyle = '#ff2a55'; liveCtx.shadowColor = '#ff2a55'; liveCtx.shadowBlur = 14;
-                liveCtx.lineWidth = Math.max(2, 8 * alpha) / page.zoom; liveCtx.lineCap = 'round';
+                const dur = p1.dur || 3000;
+                const age = now - p1.t;
+                const alpha = age < dur * 0.72 ? 1 : Math.max(0, 1 - (age - dur * 0.72) / (dur * 0.28));
+                const col = p1.color || '#ff2a55';
+                // Zero-shadowBlur 3-pass fast GPU glow (20x faster than shadowBlur on Android!)
+                liveCtx.globalAlpha = alpha * 0.26;
+                liveCtx.strokeStyle = col;
+                liveCtx.lineWidth = 18 / page.zoom;
                 liveCtx.beginPath(); liveCtx.moveTo(p0.x, p0.y); liveCtx.lineTo(p1.x, p1.y); liveCtx.stroke();
-                liveCtx.strokeStyle = '#ffffff'; liveCtx.lineWidth = Math.max(1, 3 * alpha) / page.zoom; liveCtx.stroke(); liveCtx.restore();
+                liveCtx.globalAlpha = alpha * 0.85;
+                liveCtx.lineWidth = 7.5 / page.zoom;
+                liveCtx.stroke();
+                liveCtx.globalAlpha = alpha;
+                liveCtx.strokeStyle = '#ffffff';
+                liveCtx.lineWidth = 2.8 / page.zoom;
+                liveCtx.stroke();
               }
+              liveCtx.globalAlpha = 1;
             }
             for (const bp of state.blinkPointers) {
               const elapsed = now - bp.createdAt, rem = Math.ceil((bp.duration - elapsed) / 1000);
@@ -1194,8 +1472,9 @@
 
       function drawSelectionAndRing(page) {
         if (!page) return;
+        const dpr = state.dpr || 1;
         liveCtx.save();
-        liveCtx.setTransform(page.zoom, 0, 0, page.zoom, page.panX, page.panY);
+        liveCtx.setTransform(page.zoom * dpr, 0, 0, page.zoom * dpr, page.panX * dpr, page.panY * dpr);
         if (state.selectedIndices.length > 0) {
           liveCtx.strokeStyle = state.ifp.accentColor || '#3b82f6';
           liveCtx.lineWidth = 2 / page.zoom;
@@ -1377,7 +1656,7 @@
         }
         if (state.tool === 'pan') { state.isDrawing = true; state.panStart = { x: e.clientX, y: e.clientY, px: page.panX, py: page.panY }; return; }
         if (state.tool === 'text') { openTextEditor(e.clientX, e.clientY, pt.x, pt.y); return; }
-        if (state.tool === 'laser') { state.isDrawing = true; state.laserTrails.push({ x: pt.x, y: pt.y, t: performance.now(), break: true }); ensureAnimLoop(); return; }
+        if (state.tool === 'laser') { state.isDrawing = true; state.laserTrails.push({ x: pt.x, y: pt.y, t: performance.now(), dur: (state.laserDuration || 3) * 1000, color: state.laserColor || '#ff2a55', break: true }); ensureAnimLoop(); return; }
         if (state.tool === 'select') {
           if (state.selectedIndices.length === 1) {
             const selIt = page.items[state.selectedIndices[0]];
@@ -1395,17 +1674,29 @@
           else { state.selectedIndices = []; updateSelectionToolbar(); state.isDrawing = true; state.regionBox = { x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y }; }
           return;
         }
-        if (state.tool === 'shape') { state.isDrawing = true; state.shapeStart = { x: pt.x, y: pt.y }; return; }
+        if (state.tool === 'shape' || state.tool === 'whiteout') { state.isDrawing = true; state.shapeStart = { x: pt.x, y: pt.y }; return; }
         if (state.tool === 'eraser') {
           state.isDrawing = true;
-          if (state.eraserMode === 'pixel') { pushUndo(page); state.currentStroke = { type: 'pixel-eraser', size: state.eraserSize / page.zoom, points: [pt] }; page.items.push(state.currentStroke); redrawInkLayer(page); }
+          if (state.eraserMode === 'pixel') {
+            pushUndo(page);
+            const eSize = state.eraserSize / page.zoom;
+            state.currentStroke = { type: 'pixel-eraser', size: eSize, points: [pt] };
+            page.items.push(state.currentStroke);
+            stampEraserSegment(page, pt, { x: pt.x + 0.1, y: pt.y + 0.1 }, eSize);
+          }
           else if (state.eraserMode === 'stroke') { state.strokeEraserPushed = false; eraseStrokesAt(page, pt.x, pt.y); }
           else if (state.eraserMode === 'region') state.regionBox = { x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y };
           return;
         }
         state.isDrawing = true;
-        state.currentStroke = { type: 'stroke', penType: state.penType, color: state.color, size: state.size / page.zoom, opacity: state.opacity, seed: Math.floor(Math.random() * 100000), points: [pt] };
-        renderLivePreview(page);
+        const baseW = state.size / page.zoom;
+        pt.t = performance.now();
+        pt.w = baseW;
+        pt.v = 0;
+        state.currentStroke = { type: 'stroke', penType: state.penType, color: state.color, size: baseW, opacity: state.opacity, seed: Math.floor(Math.random() * 100000), points: [pt] };
+        liveCtx.setTransform(1, 0, 0, 1, 0, 0);
+        liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
+        if (!canDrawIncrementally(state.currentStroke)) renderLivePreview(page);
       });
 
       liveCanvas.addEventListener('pointermove', (e) => {
@@ -1416,26 +1707,44 @@
         if (state.tempPalmMode && state.activePointers.size >= 3) {
           const c = getCentroid();
           if (state.tempPalmMode === 'pan' && state.palmPrev) {
+            if (!state.gestureGpuActive) {
+              state.gestureGpuActive = true;
+              state.gestureStartZoom = page.zoom;
+              state.gestureStartPanX = page.panX;
+              state.gestureStartPanY = page.panY;
+            }
             page.panX += c.x - state.palmPrev.x;
             page.panY += c.y - state.palmPrev.y;
             state.palmPrev = c;
-            renderFullScene(page, false);
+            const cssT = `translate3d(${page.panX - state.gestureStartPanX}px, ${page.panY - state.gestureStartPanY}px, 0)`;
+            bgCanvas.style.transform = cssT;
+            inkCanvas.style.transform = cssT;
           } else if (state.tempPalmMode === 'erase' && state.currentStroke) {
             const wPt = screenToWorld(c.x, c.y);
             state.cursorPos = wPt;
-            state.currentStroke.points.push({ x: wPt.x, y: wPt.y, p: 0.8 });
-            redrawInkLayer(page);
+            const prevPt = state.currentStroke.points[state.currentStroke.points.length - 1];
+            const newPt = { x: wPt.x, y: wPt.y, p: 0.8 };
+            state.currentStroke.points.push(newPt);
+            stampEraserSegment(page, prevPt, newPt, state.currentStroke.size);
           }
           return;
         }
 
-        // 2-Finger Smooth Free Pinch-Zoom + Simultaneous Pan!
+        // 2-Finger BUTTER-SMOOTH GPU Pinch-Zoom + Pan (CSS transform during gesture, 1 crisp redraw on lift!)
         if (state.ifp.pinchZoom && state.activePointers.size === 2 && state.twoFingerPrev) {
+          if (!state.gestureGpuActive) {
+            state.gestureGpuActive = true;
+            state.gestureStartZoom = page.zoom;
+            state.gestureStartPanX = page.panX;
+            state.gestureStartPanY = page.panY;
+            liveCtx.setTransform(1, 0, 0, 1, 0, 0);
+            liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
+          }
           const pts = Array.from(state.activePointers.values());
           const midX = (pts[0].x + pts[1].x) / 2;
           const midY = (pts[0].y + pts[1].y) / 2;
           const dist = Math.max(24, Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y));
-          const rect = liveCanvas.getBoundingClientRect();
+          const rect = boardViewport.getBoundingClientRect();
           const prevLocalX = state.twoFingerPrev.midX - rect.left;
           const prevLocalY = state.twoFingerPrev.midY - rect.top;
           const curLocalX = midX - rect.left;
@@ -1445,12 +1754,18 @@
           const worldBeforeY = (prevLocalY - page.panY) / page.zoom;
 
           const scaleFactor = dist / state.twoFingerPrev.dist;
-          page.zoom = Math.max(0.25, Math.min(3.5, page.zoom * scaleFactor));
+          page.zoom = Math.max(0.25, Math.min(4.0, page.zoom * scaleFactor));
           page.panX = curLocalX - worldBeforeX * page.zoom;
           page.panY = curLocalY - worldBeforeY * page.zoom;
 
           state.twoFingerPrev = { midX, midY, dist };
-          renderFullScene(page, false);
+          const relS = page.zoom / state.gestureStartZoom;
+          const relTx = page.panX - state.gestureStartPanX * relS;
+          const relTy = page.panY - state.gestureStartPanY * relS;
+          const cssT = `translate3d(${relTx}px, ${relTy}px, 0) scale(${relS})`;
+          bgCanvas.style.transform = cssT;
+          inkCanvas.style.transform = cssT;
+          document.getElementById('zoomPercent').textContent = Math.round(page.zoom * 100) + '%';
           return;
         }
 
@@ -1476,19 +1791,35 @@
               liveCtx.setTransform(1, 0, 0, 1, 0, 0); liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height); return;
             } else {
               state.tempPalmMode = 'erase'; liveCtx.setTransform(1, 0, 0, 1, 0, 0); liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
-              pushUndo(page); state.currentStroke = { type: 'pixel-eraser', size: Math.max(state.eraserSize * 1.5, 62) / page.zoom, points: [pt] };
-              page.items.push(state.currentStroke); redrawInkLayer(page); return;
+              pushUndo(page); const pSize = Math.max(state.eraserSize * 1.5, 68) / page.zoom;
+              state.currentStroke = { type: 'pixel-eraser', size: pSize, points: [pt] };
+              page.items.push(state.currentStroke); stampEraserSegment(page, pt, { x: pt.x + 0.1, y: pt.y + 0.1 }, pSize); return;
             }
           }
         }
-        if (state.tempPalmMode === 'erase' && state.currentStroke) { state.currentStroke.points.push(pt); redrawInkLayer(page); return; }
+        if (state.tempPalmMode === 'erase' && state.currentStroke) {
+          const prevPt = state.currentStroke.points[state.currentStroke.points.length - 1];
+          state.currentStroke.points.push(pt);
+          stampEraserSegment(page, prevPt, pt, state.currentStroke.size);
+          return;
+        }
 
         if (state.tool === 'pan' && state.panStart) {
-          page.panX = state.panStart.px + (e.clientX - state.panStart.x);
-          page.panY = state.panStart.py + (e.clientY - state.panStart.y);
-          renderFullScene(page, false); return;
+          if (!state.gestureGpuActive) {
+            state.gestureGpuActive = true;
+            state.gestureStartZoom = page.zoom;
+            state.gestureStartPanX = state.panStart.px;
+            state.gestureStartPanY = state.panStart.py;
+          }
+          const dx = e.clientX - state.panStart.x, dy = e.clientY - state.panStart.y;
+          page.panX = state.panStart.px + dx;
+          page.panY = state.panStart.py + dy;
+          const cssT = `translate3d(${dx}px, ${dy}px, 0)`;
+          bgCanvas.style.transform = cssT;
+          inkCanvas.style.transform = cssT;
+          return;
         }
-        if (state.tool === 'laser') { state.laserTrails.push({ x: pt.x, y: pt.y, t: performance.now(), break: false }); ensureAnimLoop(); return; }
+        if (state.tool === 'laser') { state.laserTrails.push({ x: pt.x, y: pt.y, t: performance.now(), dur: (state.laserDuration || 3) * 1000, color: state.laserColor || '#ff2a55', break: false }); ensureAnimLoop(); return; }
         if (state.tool === 'select') {
           if (state.resizingImage) {
             const r = state.resizingImage, it = page.items[r.idx];
@@ -1506,31 +1837,91 @@
           else if (state.regionBox) { state.regionBox.x2 = pt.x; state.regionBox.y2 = pt.y; drawSelectionBox(page, state.regionBox, '#3b82f6', 'rgba(59,130,246,0.12)'); }
           return;
         }
+        if (state.tool === 'whiteout' && state.shapeStart) {
+          drawSelectionBox(page, { x1: state.shapeStart.x, y1: state.shapeStart.y, x2: pt.x, y2: pt.y }, '#10b981', 'rgba(255,255,255,0.88)');
+          return;
+        }
         if (state.tool === 'shape' && state.shapeStart) {
+          const dpr = state.dpr || 1;
           liveCtx.setTransform(1, 0, 0, 1, 0, 0); liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
-          liveCtx.save(); liveCtx.setTransform(page.zoom, 0, 0, page.zoom, page.panX, page.panY);
+          liveCtx.save(); liveCtx.setTransform(page.zoom * dpr, 0, 0, page.zoom * dpr, page.panX * dpr, page.panY * dpr);
           let ex = pt.x, ey = pt.y;
           if (state.shiftHeld) { const dx = ex - state.shapeStart.x, dy = ey - state.shapeStart.y, m = Math.max(Math.abs(dx), Math.abs(dy)); ex = state.shapeStart.x + Math.sign(dx) * m; ey = state.shapeStart.y + Math.sign(dy) * m; }
           drawShapeItem(liveCtx, { type: 'shape', shapeType: state.shapeType, x1: state.shapeStart.x, y1: state.shapeStart.y, x2: ex, y2: ey, color: state.color, size: state.size / page.zoom, opacity: state.opacity, fill: state.shapeFill });
           liveCtx.restore(); return;
         }
         if (state.tool === 'eraser') {
-          if (state.eraserMode === 'pixel' && state.currentStroke) { state.currentStroke.points.push(pt); redrawInkLayer(page); }
+          if (state.eraserMode === 'pixel' && state.currentStroke) {
+            const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+            for (const ce of evs) {
+              const cpt = screenToWorld(ce.clientX, ce.clientY);
+              const prevPt = state.currentStroke.points[state.currentStroke.points.length - 1];
+              if (Math.hypot(cpt.x - prevPt.x, cpt.y - prevPt.y) >= 1.5 / page.zoom) {
+                state.currentStroke.points.push(cpt);
+                stampEraserSegment(page, prevPt, cpt, state.currentStroke.size);
+              }
+            }
+          }
           else if (state.eraserMode === 'stroke') { eraseStrokesAt(page, pt.x, pt.y); drawSelectionHighlights(page); }
           else if (state.eraserMode === 'region' && state.regionBox) { state.regionBox.x2 = pt.x; state.regionBox.y2 = pt.y; drawSelectionBox(page, state.regionBox, '#f43f5e', 'rgba(244,63,94,0.14)'); }
           return;
         }
         if (state.currentStroke) {
-          if (state.straightLine || state.shiftHeld) state.currentStroke.points = [state.currentStroke.points[0], pt];
-          else { const last = state.currentStroke.points[state.currentStroke.points.length - 1]; if (Math.hypot(pt.x - last.x, pt.y - last.y) >= 1.2 / page.zoom) state.currentStroke.points.push(pt); }
-          renderLivePreview(page);
+          if (state.straightLine || state.shiftHeld) {
+            state.currentStroke.points = [state.currentStroke.points[0], pt];
+            renderLivePreview(page);
+            return;
+          }
+          const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+          const sm = state.smoothness || 0;
+          const isInc = canDrawIncrementally(state.currentStroke);
+          const nowT = performance.now();
+          let added = false;
+          for (const ce of evs) {
+            const raw = screenToWorld(ce.clientX, ce.clientY);
+            const last = state.currentStroke.points[state.currentStroke.points.length - 1];
+            const dist = Math.hypot(raw.x - last.x, raw.y - last.y);
+            if (dist < 1.2 / page.zoom) continue;
+            // Adaptive Handwriting Stabilizer (turns shaky IR touch into crisp smooth strokes!)
+            const alpha = 1 - Math.min(0.75, sm * (dist < 16 / page.zoom ? 1 : 0.65));
+            const sx = last.x + (raw.x - last.x) * alpha;
+            const sy = last.y + (raw.y - last.y) * alpha;
+            const dt = Math.max(2, nowT - (last.t || nowT));
+            const vel = Math.hypot(sx - last.x, sy - last.y) * page.zoom / dt;
+            const smoothV = (last.v || 0) * 0.72 + vel * 0.28;
+            // Organic Beauty Pen calligraphic width modulation
+            const baseW = state.currentStroke.size;
+            const targetW = state.currentStroke.penType === 'beauty'
+              ? baseW * Math.max(0.56, Math.min(1.22, 1.18 - smoothV * 0.22))
+              : baseW;
+            const w = (last.w || baseW) * 0.65 + targetW * 0.35;
+            const nextPt = { x: sx, y: sy, p: ce.pressure || 0.5, t: nowT, v: smoothV, w };
+            state.currentStroke.points.push(nextPt);
+            added = true;
+            if (isInc) drawIncrementalLiveSegment(page, state.currentStroke);
+          }
+          if (added && !isInc && !state.liveRafPending) {
+            state.liveRafPending = true;
+            requestAnimationFrame(() => { state.liveRafPending = false; renderLivePreview(getActivePage()); });
+          }
         }
       });
 
+      function finishGpuGesture(page) {
+        if (!state.gestureGpuActive) return;
+        state.gestureGpuActive = false;
+        bgCanvas.style.transform = '';
+        inkCanvas.style.transform = '';
+        if (page) renderFullScene(page, false);
+      }
+
       function endPointer(e) {
         state.activePointers.delete(e.pointerId);
-        if (state.activePointers.size < 2) state.twoFingerPrev = null;
         const page = getActivePage();
+        if (state.activePointers.size < 2) {
+          state.twoFingerPrev = null;
+          if (state.gestureGpuActive && state.activePointers.size === 0) finishGpuGesture(page);
+        }
         if (state.activePointers.size === 0) {
           if (state.tempPalmMode) {
             state.tempPalmMode = null; state.palmPrev = null; state.currentStroke = null; state.isDrawing = false; state.lastTouchDiameter = 0;
@@ -1543,7 +1934,7 @@
         state.isDrawing = false;
         const wPt = screenToWorld(e.clientX, e.clientY);
 
-        if (state.tool === 'pan') { state.panStart = null; saveToLocalStorage(); return; }
+        if (state.tool === 'pan') { state.panStart = null; finishGpuGesture(page); saveToLocalStorage(); return; }
         if (state.tool === 'laser' || state.tool === 'blink-pointer') return;
         if (state.tool === 'select') {
           if (state.resizingImage) { state.resizingImage = null; saveToLocalStorage(); return; }
@@ -1551,14 +1942,31 @@
           else if (state.regionBox) { const m = []; for (let i = 0; i < page.items.length; i++) if (boxIntersectsItem(page.items[i], state.regionBox)) m.push(i); state.selectedIndices = m; state.regionBox = null; updateSelectionToolbar(); drawSelectionHighlights(page); }
           return;
         }
+        if (state.tool === 'whiteout' && state.shapeStart) {
+          if (Math.hypot(wPt.x - state.shapeStart.x, wPt.y - state.shapeStart.y) > 4 / page.zoom) {
+            pushUndo(page);
+            const wo = { type: 'whiteout', x1: state.shapeStart.x, y1: state.shapeStart.y, x2: wPt.x, y2: wPt.y, color: page.kind === 'pdf' ? '#ffffff' : getBoardBaseFill(page) };
+            page.items.push(wo);
+            stampSingleItemToInk(page, wo);
+            saveToLocalStorage();
+          }
+          state.shapeStart = null; liveCtx.setTransform(1, 0, 0, 1, 0, 0); liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height); return;
+        }
         if (state.tool === 'shape' && state.shapeStart) {
           let ex = wPt.x, ey = wPt.y;
           if (state.shiftHeld) { const dx = ex - state.shapeStart.x, dy = ey - state.shapeStart.y, m = Math.max(Math.abs(dx), Math.abs(dy)); ex = state.shapeStart.x + Math.sign(dx) * m; ey = state.shapeStart.y + Math.sign(dy) * m; }
-          if (Math.hypot(ex - state.shapeStart.x, ey - state.shapeStart.y) > 4 / page.zoom) { pushUndo(page); page.items.push({ type: 'shape', shapeType: state.shapeType, x1: state.shapeStart.x, y1: state.shapeStart.y, x2: ex, y2: ey, color: state.color, size: state.size / page.zoom, opacity: state.opacity, fill: state.shapeFill }); redrawInkLayer(page); saveToLocalStorage(); }
+          if (Math.hypot(ex - state.shapeStart.x, ey - state.shapeStart.y) > 4 / page.zoom) {
+            pushUndo(page);
+            const sh = { type: 'shape', shapeType: state.shapeType, x1: state.shapeStart.x, y1: state.shapeStart.y, x2: ex, y2: ey, color: state.color, size: state.size / page.zoom, opacity: state.opacity, fill: state.shapeFill };
+            page.items.push(sh);
+            stampSingleItemToInk(page, sh);
+            saveToLocalStorage();
+          }
           state.shapeStart = null; liveCtx.setTransform(1, 0, 0, 1, 0, 0); liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height); return;
         }
         if (state.tool === 'eraser') {
           if (state.eraserMode === 'pixel') { state.currentStroke = null; saveToLocalStorage(); }
+          else if (state.eraserMode === 'stroke') { if (state.strokeEraserPushed) saveToLocalStorage(); state.strokeEraserPushed = false; }
           else if (state.eraserMode === 'region' && state.regionBox) {
             const before = page.items.length, kept = page.items.filter(it => !boxIntersectsItem(it, state.regionBox));
             if (kept.length !== before) { pushUndo(page); page.items = kept; redrawInkLayer(page); saveToLocalStorage(); }
@@ -1568,9 +1976,18 @@
         }
         if (state.currentStroke) {
           pushUndo(page);
-          if (state.currentStroke.penType === 'smart') { const snapped = tryRecognizeSmartShape(state.currentStroke); if (snapped) { page.items.push(snapped); showToast(`Smart Pen snapped to ${snapped.shapeType}`, 'success'); } else page.items.push(state.currentStroke); }
-          else page.items.push(state.currentStroke);
-          state.currentStroke = null; liveCtx.setTransform(1, 0, 0, 1, 0, 0); liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height); redrawInkLayer(page); saveToLocalStorage();
+          let committed = state.currentStroke;
+          if (state.currentStroke.penType === 'smart') {
+            const snapped = tryRecognizeSmartShape(state.currentStroke);
+            if (snapped) { committed = snapped; showToast(`Smart Pen snapped to ${snapped.shapeType}`, 'success'); }
+          }
+          page.items.push(committed);
+          state.currentStroke = null;
+          liveCtx.setTransform(1, 0, 0, 1, 0, 0);
+          liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
+          // O(1) Stamp only the new stroke onto inkCanvas — zero full-page redraw lag!
+          stampSingleItemToInk(page, committed);
+          saveToLocalStorage();
         }
       }
       liveCanvas.addEventListener('pointerup', endPointer);
@@ -1589,21 +2006,32 @@
       function renderLivePreview(page) {
         liveCtx.setTransform(1, 0, 0, 1, 0, 0); liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
         if (!state.currentStroke || !page) return;
-        liveCtx.save(); liveCtx.setTransform(page.zoom, 0, 0, page.zoom, page.panX, page.panY);
+        const dpr = state.dpr || 1;
+        liveCtx.save(); liveCtx.setTransform(page.zoom * dpr, 0, 0, page.zoom * dpr, page.panX * dpr, page.panY * dpr);
         drawStrokeItem(liveCtx, state.currentStroke, page.kind === 'blank' && isPageDarkBoard(page));
         liveCtx.restore();
       }
       function drawSelectionBox(page, box, strokeColor, fillColor) {
         liveCtx.setTransform(1, 0, 0, 1, 0, 0); liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
-        liveCtx.save(); liveCtx.setTransform(page.zoom, 0, 0, page.zoom, page.panX, page.panY);
+        const dpr = state.dpr || 1;
+        liveCtx.save(); liveCtx.setTransform(page.zoom * dpr, 0, 0, page.zoom * dpr, page.panX * dpr, page.panY * dpr);
         const x = Math.min(box.x1, box.x2), y = Math.min(box.y1, box.y2), w = Math.abs(box.x2 - box.x1), h = Math.abs(box.y2 - box.y1);
         liveCtx.fillStyle = fillColor; liveCtx.strokeStyle = strokeColor; liveCtx.lineWidth = 2 / page.zoom; liveCtx.setLineDash([6 / page.zoom, 4 / page.zoom]);
         liveCtx.fillRect(x, y, w, h); liveCtx.strokeRect(x, y, w, h); liveCtx.restore();
       }
       function eraseStrokesAt(page, x, y) {
         let removed = false;
-        for (let i = page.items.length - 1; i >= 0; i--) if (hitTestItem(page.items[i], x, y, 14 / page.zoom)) { if (!state.strokeEraserPushed) { pushUndo(page); state.strokeEraserPushed = true; } page.items.splice(i, 1); removed = true; }
-        if (removed) { redrawInkLayer(page); saveToLocalStorage(); }
+        const rad = Math.max(18, state.eraserSize * 0.45) / page.zoom;
+        for (let i = page.items.length - 1; i >= 0; i--) {
+          const it = page.items[i];
+          const b = getItemBounds(it);
+          if (x < b.x - rad || x > b.x + b.w + rad || y < b.y - rad || y > b.y + b.h + rad) continue;
+          if (hitTestItem(it, x, y, rad)) {
+            if (!state.strokeEraserPushed) { pushUndo(page); state.strokeEraserPushed = true; }
+            page.items.splice(i, 1); removed = true;
+          }
+        }
+        if (removed) redrawInkLayer(page);
       }
       function moveItemBy(item, dx, dy) {
         if (!item) return;
@@ -1638,6 +2066,7 @@
         activeTextWorld = null;
       }
       textEditor.addEventListener('keydown', (e) => { if (e.key === 'Escape') { textEditor.classList.add('hidden'); activeTextWorld = null; } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); commitTextEditor(); } });
+      textEditor.addEventListener('blur', () => { setTimeout(commitTextEditor, 60); });
 
       // ==================== PDF LOADER & EXPORT ====================
       async function loadPdfFromArrayBuffer(arrayBuffer, filename) {
@@ -1660,9 +2089,14 @@
           if (nb.pages.length === 1 && nb.pages[0].kind === 'blank' && nb.pages[0].items.length === 0) { nb.pages = newPages; state.activePageIndex = 0; }
           else { const at = state.activePageIndex + 1; nb.pages.splice(at, 0, ...newPages); state.activePageIndex = at; }
           nb.name = filename.replace(/\.pdf$/i, '');
-          if (state.color === '#ffffff') setColor('#111827');
-          await ensurePdfPageBitmap(getActivePage());
-          centerDocumentInView(getActivePage());
+          const firstPg = getActivePage();
+          await ensurePdfPageBitmap(firstPg);
+          if (firstPg && firstPg.detectedPdfBg && isDarkColorHex(firstPg.detectedPdfBg)) {
+            if (isDarkColorHex(state.color)) setColor('#facc15');
+          } else {
+            if (state.color === '#ffffff') setColor('#111827');
+          }
+          centerDocumentInView(firstPg, state.appMode === 'android-pdf' ? 'width' : 'page');
           await switchToPage(state.activePageIndex, false);
           setLoading(false); closeSideDrawer();
           showToast(`Opened "${filename}" (${numPages} pages)`, 'success');
@@ -1855,8 +2289,8 @@
       document.getElementById('btnAiQuiz').addEventListener('click', () => callGeminiBoardAi('Generate 5 multiple-choice questions with an Answer Key based on this board.'));
       document.getElementById('btnAiSend').addEventListener('click', () => { const inp = document.getElementById('aiPromptInput'), q = inp.value.trim(); if (!q) return; inp.value = ''; callGeminiBoardAi(q); });
       document.getElementById('aiPromptInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnAiSend').click(); } });
-      document.getElementById('btnStampAiToBoard').addEventListener('click', () => { const pg = getActivePage(); if (!pg || !lastAiAnswerText) return; pushUndo(pg); const c = screenToWorld(bgCanvas.width * 0.15, bgCanvas.height * 0.15); pg.items.push({ type: 'text', x: c.x, y: c.y, text: lastAiAnswerText.slice(0, 600), color: isPageDarkBoard(pg) ? '#f8fafc' : '#1e293b', fontSize: 20 / pg.zoom, opacity: 1 }); redrawInkLayer(pg); saveToLocalStorage(); });
-      document.getElementById('btnPinAiSticky').addEventListener('click', () => { const pg = getActivePage(); if (!pg || !lastAiAnswerText) return; const c = screenToWorld(bgCanvas.width * 0.25, bgCanvas.height * 0.2); pg.stickies.push({ id: uid('st'), x: c.x, y: c.y, w: 300, bg: '#bae6fd', text: lastAiAnswerText.slice(0, 500) }); renderStickies(pg); saveToLocalStorage(); });
+      document.getElementById('btnStampAiToBoard').addEventListener('click', () => { const pg = getActivePage(); if (!pg || !lastAiAnswerText) return; pushUndo(pg); const c = screenToWorld(state.viewW * 0.15, state.viewH * 0.15); pg.items.push({ type: 'text', x: c.x, y: c.y, text: lastAiAnswerText.slice(0, 600), color: isPageDarkBoard(pg) ? '#f8fafc' : '#1e293b', fontSize: 20 / pg.zoom, opacity: 1 }); redrawInkLayer(pg); saveToLocalStorage(); });
+      document.getElementById('btnPinAiSticky').addEventListener('click', () => { const pg = getActivePage(); if (!pg || !lastAiAnswerText) return; const c = screenToWorld(state.viewW * 0.25, state.viewH * 0.2); pg.stickies.push({ id: uid('st'), x: c.x, y: c.y, w: 300, bg: '#bae6fd', text: lastAiAnswerText.slice(0, 500) }); renderStickies(pg); saveToLocalStorage(); });
 
       // Spotlight, Curtain, Timer, Piano, Function, Equation, Table
       const spotlightOv = document.getElementById('spotlightOverlay'), spotlightCvs = document.getElementById('spotlightCanvas'), spotlightCtx = spotlightCvs.getContext('2d');
@@ -1897,7 +2331,7 @@
         const raw = document.getElementById('funcExprInput').value.trim(), pg = getActivePage(); if (!pg || !raw) return;
         try {
           const fn = new Function('x', 'return ' + raw.replace(/\^/g, '**').replace(/\b(sin|cos|tan|sqrt|abs|log|exp|pow)\b/g, 'Math.$1').replace(/\bpi\b/gi, 'Math.PI'));
-          const c = screenToWorld(bgCanvas.width / 2, bgCanvas.height / 2), sc = 42 / pg.zoom, pts = [];
+          const c = screenToWorld(state.viewW / 2, state.viewH / 2), sc = 42 / pg.zoom, pts = [];
           for (let px = -260; px <= 260; px += 4) { const yv = fn(px / 42); if (Number.isFinite(yv) && Math.abs(yv * 42) < 220) pts.push({ x: c.x + px / pg.zoom, y: c.y - (yv * 42) / pg.zoom, p: 0.5 }); }
           pushUndo(pg);
           pg.items.push({ type: 'shape', shapeType: 'axis', x1: c.x - 280 / pg.zoom, y1: c.y - 200 / pg.zoom, x2: c.x + 280 / pg.zoom, y2: c.y + 200 / pg.zoom, color: isPageDarkBoard(pg) ? '#94a3b8' : '#475569', size: 2 / pg.zoom, opacity: 0.8, fill: false });
@@ -1909,12 +2343,12 @@
       (function () { const syms = ['∑', '∫', '√', 'π', 'θ', 'α', 'β', 'Δ', '∞', '±', '×', '÷', '≤', '≥', '≠', '→', '²', '³', '½', '¼', '°', '∠', '⊥', '∥'], g = document.getElementById('eqSymbolGrid'), inp = document.getElementById('equationInput'); syms.forEach(s => { const b = document.createElement('button'); b.className = 'py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm text-white font-semibold'; b.textContent = s; b.addEventListener('click', () => { inp.value += s; inp.focus(); }); g.appendChild(b); }); })();
       document.getElementById('btnToolEquation').addEventListener('click', () => { closeAllPopovers(); document.getElementById('equationModal').classList.remove('hidden'); });
       document.getElementById('btnCancelEq').addEventListener('click', () => document.getElementById('equationModal').classList.add('hidden'));
-      document.getElementById('btnInsertEq').addEventListener('click', () => { const t = document.getElementById('equationInput').value.trim(), pg = getActivePage(); if (pg && t) { const c = screenToWorld(bgCanvas.width * 0.4, bgCanvas.height * 0.4); pushUndo(pg); pg.items.push({ type: 'text', x: c.x, y: c.y, text: t, color: state.color, fontSize: 40 / pg.zoom, opacity: 1 }); redrawInkLayer(pg); saveToLocalStorage(); } document.getElementById('equationModal').classList.add('hidden'); });
+      document.getElementById('btnInsertEq').addEventListener('click', () => { const t = document.getElementById('equationInput').value.trim(), pg = getActivePage(); if (pg && t) { const c = screenToWorld(state.viewW * 0.4, state.viewH * 0.4); pushUndo(pg); pg.items.push({ type: 'text', x: c.x, y: c.y, text: t, color: state.color, fontSize: 40 / pg.zoom, opacity: 1 }); redrawInkLayer(pg); saveToLocalStorage(); } document.getElementById('equationModal').classList.add('hidden'); });
 
-      document.getElementById('btnAddStickyNote').addEventListener('click', () => { closeAllPopovers(); const pg = getActivePage(); if (!pg) return; const c = screenToWorld(bgCanvas.width * 0.25, bgCanvas.height * 0.25); pg.stickies.push({ id: uid('st'), x: c.x, y: c.y, w: 220, bg: '#fef08a', text: '' }); renderStickies(pg); saveToLocalStorage(); });
+      document.getElementById('btnAddStickyNote').addEventListener('click', () => { closeAllPopovers(); const pg = getActivePage(); if (!pg) return; const c = screenToWorld(state.viewW * 0.25, state.viewH * 0.25); pg.stickies.push({ id: uid('st'), x: c.x, y: c.y, w: 220, bg: '#fef08a', text: '' }); renderStickies(pg); saveToLocalStorage(); });
       document.getElementById('btnInsertTable').addEventListener('click', () => { closeAllPopovers(); document.getElementById('tableModal').classList.remove('hidden'); });
       document.getElementById('btnCancelTable').addEventListener('click', () => document.getElementById('tableModal').classList.add('hidden'));
-      document.getElementById('btnConfirmTable').addEventListener('click', () => { const rows = Math.max(2, Math.min(12, parseInt(document.getElementById('tableRowsInput').value, 10) || 4)), cols = Math.max(2, Math.min(8, parseInt(document.getElementById('tableColsInput').value, 10) || 3)), pg = getActivePage(); if (pg) { const c = screenToWorld(bgCanvas.width / 2, bgCanvas.height / 2), tw = 560 / pg.zoom, th = (rows * 52) / pg.zoom; pushUndo(pg); pg.items.push({ type: 'shape', shapeType: 'table', rows, cols, x1: c.x - tw / 2, y1: c.y - th / 2, x2: c.x + tw / 2, y2: c.y + th / 2, color: state.color, size: 2.5 / pg.zoom, opacity: 1, fill: false }); redrawInkLayer(pg); saveToLocalStorage(); } document.getElementById('tableModal').classList.add('hidden'); });
+      document.getElementById('btnConfirmTable').addEventListener('click', () => { const rows = Math.max(2, Math.min(12, parseInt(document.getElementById('tableRowsInput').value, 10) || 4)), cols = Math.max(2, Math.min(8, parseInt(document.getElementById('tableColsInput').value, 10) || 3)), pg = getActivePage(); if (pg) { const c = screenToWorld(state.viewW / 2, state.viewH / 2), tw = 560 / pg.zoom, th = (rows * 52) / pg.zoom; pushUndo(pg); pg.items.push({ type: 'shape', shapeType: 'table', rows, cols, x1: c.x - tw / 2, y1: c.y - th / 2, x2: c.x + tw / 2, y2: c.y + th / 2, color: state.color, size: 2.5 / pg.zoom, opacity: 1, fill: false }); redrawInkLayer(pg); saveToLocalStorage(); } document.getElementById('tableModal').classList.add('hidden'); });
 
       // ==================== DIRECT INPUT FOLDER CONNECTOR ====================
       function renderInputLibrary() {
@@ -1951,7 +2385,7 @@
             const pg = getActivePage(); if (!pg) return;
             const sc = img.width > 520 ? 520 / img.width : 1, w = (img.width * sc) / pg.zoom, h = (img.height * sc) / pg.zoom, imgId = uid('img');
             state.imageCache[imgId] = img;
-            const c = screenToWorld(bgCanvas.width / 2, bgCanvas.height / 2);
+            const c = screenToWorld(state.viewW / 2, state.viewH / 2);
             pushUndo(pg); pg.items.push({ type: 'overlay-image', imgId, dataUrl: r.result, x: c.x - w / 2, y: c.y - h / 2, w, h });
             setTool('select'); state.selectedIndices = [pg.items.length - 1]; updateSelectionToolbar(); redrawInkLayer(pg);
           };
@@ -2017,10 +2451,16 @@
         document.querySelectorAll('.shape-opt-btn').forEach(b => { const a = b.dataset.shape === state.shapeType; b.classList.toggle('border-blue-500', a); b.classList.toggle('bg-blue-600/30', a); });
         buildPenGrid();
       }
-      function closeAllPopovers(exceptId) { ['penStudioPopover', 'geoToolPopover', 'eraserPopover', 'shapePopover', 'ifpToolsPopover'].forEach(id => { if (id !== exceptId) document.getElementById(id).classList.add('hidden'); }); }
+      function closeAllPopovers(exceptId) { ['penStudioPopover', 'geoToolPopover', 'eraserPopover', 'shapePopover', 'ifpToolsPopover', 'laserPopover'].forEach(id => { if (id !== exceptId) document.getElementById(id).classList.add('hidden'); }); }
       function togglePopover(id) { const el = document.getElementById(id), h = el.classList.contains('hidden'); closeAllPopovers(id); if (h) el.classList.remove('hidden'); else el.classList.add('hidden'); }
       function updateSelectionToolbar() { const tb = document.getElementById('selectionToolbar'); if (state.selectedIndices.length > 0) { document.getElementById('selectionCountLabel').textContent = `${state.selectedIndices.length} selected`; tb.classList.remove('hidden'); } else tb.classList.add('hidden'); }
-      function updateUndoRedoButtons() { const pg = getActivePage(); document.getElementById('btnUndo').disabled = !pg || pg.undoStack.length === 0; document.getElementById('btnRedo').disabled = !pg || pg.redoStack.length === 0; }
+      function updateUndoRedoButtons() {
+        const pg = getActivePage();
+        const noU = !pg || pg.undoStack.length === 0;
+        const noR = !pg || pg.redoStack.length === 0;
+        ['btnUndo', 'btnDockUndo', 'presUndo'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = noU; });
+        ['btnRedo', 'btnDockRedo', 'presRedo'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = noR; });
+      }
 
       async function switchToPage(idx, autoCenter = false) {
         const nb = getActiveNotebook(); if (!nb || nb.pages.length === 0) return;
@@ -2036,7 +2476,7 @@
         if (pg.kind === 'image') await ensureImagePageBitmap(pg);
         if (autoCenter && (pg.kind === 'pdf' || pg.kind === 'image') && pg.panX === 0 && pg.panY === 0 && pg.zoom === 1) centerDocumentInView(pg);
         await renderFullScene(pg, true);
-        updateUndoRedoButtons(); renderSidebarPages();
+        updateUndoRedoButtons(); renderSidebarPages(); syncPresNav();
       }
 
       function renderSidebarPages() {
@@ -2067,8 +2507,14 @@
       function applyBackgroundTemplate(tpl, customHex) {
         const pg = getActivePage(); if (!pg) return;
         pg.template = tpl;
-        if (tpl === 'custom') { const col = customHex || state.ifp.customBgColor; state.ifp.customBgColor = col; pg.customBg = col; }
-        document.getElementById('templateSelect').value = tpl;
+        pg.userOverrodeBg = true;
+        if (tpl === 'custom') {
+          const col = customHex || state.ifp.customBgColor || '#102a23';
+          state.ifp.customBgColor = col;
+          pg.customBg = col;
+        }
+        const sel = document.getElementById('templateSelect');
+        if (sel) sel.value = tpl;
         if (isPageDarkBoard(pg) && state.color === '#111827') setColor('#ffffff');
         else if (!isPageDarkBoard(pg) && state.color === '#ffffff') setColor('#111827');
         renderFullScene(pg, false); renderSidebarPages(); saveToLocalStorage();
@@ -2116,7 +2562,9 @@
       document.getElementById('templateSelect').addEventListener('change', (e) => applyBackgroundTemplate(e.target.value));
       document.querySelectorAll('.quick-tpl-btn').forEach(b => b.addEventListener('click', () => applyBackgroundTemplate(b.dataset.quickTpl)));
       document.getElementById('btnPagesApplyCustomBg').addEventListener('click', () => applyBackgroundTemplate('custom', document.getElementById('pagesCustomBgColor').value));
-      document.getElementById('btnApplyBgAllPages').addEventListener('click', () => { const nb = getActiveNotebook(), cur = getActivePage(); if (!nb || !cur) return; nb.pages.forEach(p => { p.template = cur.template; p.customBg = cur.customBg; }); renderFullScene(cur, false); renderSidebarPages(); saveToLocalStorage(); showToast('Applied background to all pages', 'success'); });
+      document.getElementById('pagesCustomBgColor').addEventListener('input', (e) => applyBackgroundTemplate('custom', e.target.value));
+      document.getElementById('pagesCustomBgColor').addEventListener('change', (e) => applyBackgroundTemplate('custom', e.target.value));
+      document.getElementById('btnApplyBgAllPages').addEventListener('click', () => { const nb = getActiveNotebook(), cur = getActivePage(); if (!nb || !cur) return; nb.pages.forEach(p => { p.template = cur.template; p.customBg = cur.customBg; p.userOverrodeBg = true; }); renderFullScene(cur, false); renderSidebarPages(); saveToLocalStorage(); showToast('Applied background to all pages', 'success'); });
 
       document.getElementById('btnQuickOrientation').addEventListener('click', () => { const pg = getActivePage(); if (!pg) return; pg.orientation = pg.orientation === 'portrait' ? 'landscape' : 'portrait'; renderFullScene(pg, false); });
       document.getElementById('btnSetLandscape').addEventListener('click', () => { const pg = getActivePage(); if (pg) { pg.orientation = 'landscape'; renderFullScene(pg, false); } });
@@ -2124,7 +2572,7 @@
 
       function zoomAroundCenter(delta) {
         const pg = getActivePage(); if (!pg) return;
-        const cx = bgCanvas.width / 2, cy = bgCanvas.height / 2;
+        const cx = state.viewW / 2, cy = state.viewH / 2;
         const wx = (cx - pg.panX) / pg.zoom, wy = (cy - pg.panY) / pg.zoom;
         pg.zoom = Math.max(0.25, Math.min(3.5, Math.round((pg.zoom + delta) * 100) / 100));
         pg.panX = cx - wx * pg.zoom; pg.panY = cy - wy * pg.zoom;
@@ -2139,12 +2587,170 @@
       document.getElementById('btnNextPage').addEventListener('click', () => switchToPage(state.activePageIndex + 1, true));
       document.getElementById('btnAddBlankPage').addEventListener('click', () => { const nb = getActiveNotebook(), cur = getActivePage(); nb.pages.splice(state.activePageIndex + 1, 0, createBlankPage(cur ? cur.template : 'greenboard', cur ? cur.orientation : 'landscape')); switchToPage(state.activePageIndex + 1, false); saveToLocalStorage(); });
       document.getElementById('btnCreateNotebook').addEventListener('click', () => { const inp = document.getElementById('newNotebookName'), name = inp.value.trim() || 'Board ' + (state.notebooks.length + 1); const nb = { id: uid('nb'), name, updatedAt: Date.now(), pages: [createBlankPage('greenboard', 'landscape')] }; state.notebooks.unshift(nb); state.activeNotebookId = nb.id; state.activePageIndex = 0; inp.value = ''; switchToPage(0, false); saveToLocalStorage(); });
-      document.getElementById('pdfQualitySelect').addEventListener('change', (e) => { state.pdfScale = parseFloat(e.target.value) || 2; });
+      document.getElementById('pdfQualitySelect').addEventListener('change', async (e) => {
+        state.pdfScale = parseFloat(e.target.value) || 3;
+        state.pdfBitmapCache = {};
+        const pg = getActivePage();
+        if (pg && pg.kind === 'pdf') { await ensurePdfPageBitmap(pg); centerDocumentInView(pg, state.fitMode); await renderFullScene(pg, true); showToast('PDF quality updated to ' + state.pdfScale + 'x', 'success'); }
+      });
 
       function doUndo() { const pg = getActivePage(); if (!pg || pg.undoStack.length === 0) return; pg.redoStack.push(JSON.stringify(pg.items)); pg.items = JSON.parse(pg.undoStack.pop()); state.selectedIndices = []; updateSelectionToolbar(); redrawInkLayer(pg); updateUndoRedoButtons(); renderSidebarPages(); saveToLocalStorage(); }
       function doRedo() { const pg = getActivePage(); if (!pg || pg.redoStack.length === 0) return; pg.undoStack.push(JSON.stringify(pg.items)); pg.items = JSON.parse(pg.redoStack.pop()); state.selectedIndices = []; updateSelectionToolbar(); redrawInkLayer(pg); updateUndoRedoButtons(); renderSidebarPages(); saveToLocalStorage(); }
       document.getElementById('btnUndo').addEventListener('click', doUndo);
       document.getElementById('btnRedo').addEventListener('click', doRedo);
+      document.getElementById('btnDockUndo').addEventListener('click', doUndo);
+      document.getElementById('btnDockRedo').addEventListener('click', doRedo);
+      document.getElementById('presUndo').addEventListener('click', doUndo);
+      document.getElementById('presRedo').addEventListener('click', doRedo);
+
+      // Smoothness stabilizer selector
+      document.querySelectorAll('.smooth-btn').forEach(btn => btn.addEventListener('click', () => {
+        state.smoothness = parseFloat(btn.dataset.smooth) || 0;
+        document.querySelectorAll('.smooth-btn').forEach(b => {
+          const on = b === btn;
+          b.classList.toggle('bg-blue-600', on); b.classList.toggle('text-white', on);
+          b.classList.toggle('bg-slate-800', !on); b.classList.toggle('text-slate-300', !on);
+        });
+        showToast('Handwriting Smoothness: ' + btn.textContent, 'info');
+      }));
+
+      // Fit Full / Fit Width Toggle
+      document.getElementById('btnFitToggle').addEventListener('click', () => {
+        state.fitMode = state.fitMode === 'page' ? 'width' : 'page';
+        document.getElementById('fitModeLabel').textContent = state.fitMode === 'width' ? 'Fit Width' : 'Fit Full';
+        const pg = getActivePage();
+        if (pg) { centerDocumentInView(pg, state.fitMode); renderFullScene(pg, true); }
+      });
+
+      // 3-Mode Engine: Board | Android PDF Edit | Presentation Fullscreen Ready-to-Write
+      function setAppMode(mode) {
+        state.appMode = mode;
+        document.querySelectorAll('.app-mode-btn').forEach(b => {
+          const on = b.dataset.appMode === mode;
+          b.classList.toggle('bg-blue-600', on); b.classList.toggle('text-white', on);
+          b.classList.toggle('text-slate-300', !on);
+        });
+        const isPres = mode === 'presentation';
+        const isPdfEdit = mode === 'android-pdf';
+        document.getElementById('pdfEditToolbar').classList.toggle('hidden', !isPdfEdit);
+        document.getElementById('presentationBar').classList.toggle('hidden', !isPres);
+        document.getElementById('topModePill').classList.toggle('hidden', isPres);
+        document.getElementById('btnOpenSideDrawer').classList.toggle('hidden', isPres);
+        document.getElementById('topRightPill').classList.toggle('hidden', isPres);
+        document.getElementById('bottomToolDock').classList.toggle('hidden', isPres);
+        document.getElementById('bottomRightPagePill').classList.toggle('hidden', isPres);
+        closeAllPopovers();
+        if (isPres) {
+          closeSideDrawer();
+          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          }
+          // Ready to write immediately with Beauty Pen!
+          selectPenType('beauty');
+          const pg = getActivePage();
+          if (pg) {
+            setTimeout(() => { centerDocumentInView(pg, 'page'); renderFullScene(pg, true); syncPresNav(); }, 80);
+          }
+          showToast('Presentation Mode: Fullscreen & Ready to Write!', 'success');
+        } else {
+          if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          }
+          const pg = getActivePage();
+          if (pg && (pg.kind === 'pdf' || pg.kind === 'image')) {
+            setTimeout(() => { centerDocumentInView(pg, isPdfEdit ? 'width' : state.fitMode); renderFullScene(pg, true); }, 60);
+          }
+          if (isPdfEdit) showToast('Android PDF Edit Mode: Whiteout, Text, Rotate & Resize active', 'info');
+        }
+      }
+
+      function syncPresNav() {
+        const nb = getActiveNotebook(); if (!nb) return;
+        const lbl = document.getElementById('presPageNum');
+        if (lbl) lbl.textContent = `${state.activePageIndex + 1} / ${nb.pages.length}`;
+        const prev = document.getElementById('presPrev'), next = document.getElementById('presNext');
+        if (prev) prev.disabled = state.activePageIndex <= 0;
+        if (next) next.disabled = state.activePageIndex >= nb.pages.length - 1;
+      }
+
+      document.querySelectorAll('.app-mode-btn').forEach(b => b.addEventListener('click', () => setAppMode(b.dataset.appMode)));
+      document.getElementById('presExit').addEventListener('click', () => setAppMode('board'));
+      document.getElementById('presPen').addEventListener('click', () => { selectPenType('beauty'); showToast('Beauty Pen Ready', 'info'); });
+      document.getElementById('presHighlighter').addEventListener('click', () => { selectPenType('highlighter'); });
+      document.getElementById('presEraser').addEventListener('click', () => { setTool('eraser'); });
+      document.getElementById('presLaser').addEventListener('click', () => {
+        if (state.tool === 'laser') {
+          document.getElementById('laserPopover').classList.toggle('hidden');
+        } else {
+          setTool('laser');
+          showToast('Timed Laser (' + state.laserDuration + 's) active — tap again to change timer', 'info');
+        }
+      });
+      document.getElementById('dockLaser').addEventListener('click', () => {
+        if (state.tool === 'laser') {
+          const lp = document.getElementById('laserPopover');
+          const wasHidden = lp.classList.contains('hidden');
+          closeAllPopovers();
+          if (wasHidden) lp.classList.remove('hidden');
+        }
+      });
+      document.getElementById('closeLaserPopover').addEventListener('click', () => document.getElementById('laserPopover').classList.add('hidden'));
+      function setLaserTimerSec(sec) {
+        state.laserDuration = Math.max(1, Math.min(30, parseInt(sec, 10) || 3));
+        document.getElementById('laserTimerVal').textContent = state.laserDuration + 's';
+        document.getElementById('laserTimerSlider').value = state.laserDuration;
+        document.getElementById('dockLaserLabel').textContent = 'Laser ' + state.laserDuration + 's';
+        document.getElementById('presLaserSec').textContent = state.laserDuration + 's';
+        document.querySelectorAll('.laser-sec-btn').forEach(b => {
+          const on = parseInt(b.dataset.laserSec, 10) === state.laserDuration;
+          b.classList.toggle('bg-rose-600', on); b.classList.toggle('text-white', on); b.classList.toggle('border-rose-500', on);
+          b.classList.toggle('bg-slate-800', !on); b.classList.toggle('text-slate-200', !on); b.classList.toggle('border-slate-700', !on);
+        });
+      }
+      document.querySelectorAll('.laser-sec-btn').forEach(b => b.addEventListener('click', () => { setLaserTimerSec(b.dataset.laserSec); setTool('laser'); }));
+      document.getElementById('laserTimerSlider').addEventListener('input', (e) => { setLaserTimerSec(e.target.value); setTool('laser'); });
+      document.querySelectorAll('.laser-color-btn').forEach(b => b.addEventListener('click', () => {
+        state.laserColor = b.dataset.laserColor;
+        document.querySelectorAll('.laser-color-btn').forEach(x => { x.classList.toggle('border-2', x === b); x.classList.toggle('border-white', x === b); });
+        setTool('laser');
+      }));
+      document.querySelectorAll('.pres-color-btn').forEach(b => b.addEventListener('click', () => { setColor(b.dataset.presColor); setTool('pen'); }));
+      document.getElementById('presPrev').addEventListener('click', () => { if (state.activePageIndex > 0) switchToPage(state.activePageIndex - 1).then(syncPresNav); });
+      document.getElementById('presNext').addEventListener('click', () => { const nb = getActiveNotebook(); if (nb && state.activePageIndex < nb.pages.length - 1) switchToPage(state.activePageIndex + 1).then(syncPresNav); });
+      document.getElementById('presClear').addEventListener('click', () => { const pg = getActivePage(); if (pg && pg.items.length > 0) { pushUndo(pg); pg.items = []; redrawInkLayer(pg); saveToLocalStorage(); } });
+
+      // Android PDF Edit Toolbar actions
+      document.getElementById('btnPdfWhiteout').addEventListener('click', () => { setTool('whiteout'); showToast('Drag over any PDF text to Whiteout / Cover', 'info'); });
+      document.getElementById('btnPdfAddText').addEventListener('click', () => { setTool('text'); showToast('Tap anywhere on PDF to add editable text', 'info'); });
+      document.getElementById('btnPdfRotate').addEventListener('click', async () => {
+        const pg = getActivePage(); if (!pg || pg.kind !== 'pdf') { showToast('Open a PDF page to rotate', 'warn'); return; }
+        pg.pdfRotation = ((pg.pdfRotation || 0) + 90) % 360;
+        await ensurePdfPageBitmap(pg);
+        centerDocumentInView(pg, state.fitMode);
+        await renderFullScene(pg, true);
+        showToast('Rotated PDF to ' + pg.pdfRotation + '°', 'success');
+      });
+      document.getElementById('btnPdfFitWidth').addEventListener('click', () => {
+        const pg = getActivePage(); if (!pg) return;
+        state.fitMode = 'width';
+        document.getElementById('fitModeLabel').textContent = 'Fit Width';
+        centerDocumentInView(pg, 'width');
+        renderFullScene(pg, true);
+      });
+      document.getElementById('btnPdfDupPage').addEventListener('click', () => {
+        const nb = getActiveNotebook(), pg = getActivePage(); if (!nb || !pg) return;
+        const copy = { ...pg, id: uid('pg'), items: JSON.parse(JSON.stringify(pg.items)), stickies: JSON.parse(JSON.stringify(pg.stickies || [])), undoStack: [], redoStack: [] };
+        nb.pages.splice(state.activePageIndex + 1, 0, copy);
+        switchToPage(state.activePageIndex + 1);
+        showToast('Page duplicated', 'success');
+      });
+      document.getElementById('btnPdfDelPage').addEventListener('click', () => {
+        const nb = getActiveNotebook(); if (!nb || nb.pages.length <= 1) { showToast('Cannot delete the only page', 'warn'); return; }
+        nb.pages.splice(state.activePageIndex, 1);
+        state.activePageIndex = Math.max(0, state.activePageIndex - 1);
+        switchToPage(state.activePageIndex);
+        showToast('Page deleted', 'info');
+      });
 
       document.getElementById('btnExportPdf').addEventListener('click', () => { closeSideDrawer(); exportAnnotatedPdf(); });
       document.getElementById('btnExportPng').addEventListener('click', () => { closeSideDrawer(); exportCurrentPagePng(); });
