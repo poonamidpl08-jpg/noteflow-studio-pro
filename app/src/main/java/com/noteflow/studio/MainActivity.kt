@@ -250,7 +250,7 @@ class MainActivity : AppCompatActivity() {
                     return false
                 }
                 if (u.startsWith("intent://")) {
-                    val m = Regex("S\.browser_fallback_url=([^;]+)").find(u)
+                    val m = Regex("S\\.browser_fallback_url=([^;]+)").find(u)
                     if (m != null) {
                         val fallback = Uri.decode(m.groupValues[1])
                         view?.loadUrl(fallback)
